@@ -20,6 +20,7 @@ type AuthState = {
   profile: Profile | null
   configured: boolean
   signInWithMagicLink: (email: string) => Promise<void>
+  signInWithPassword: (email: string, password: string) => Promise<void>
   updateDisplayName: (name: string) => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
@@ -82,6 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+    if (error) throw error
+  }, [])
+
   const updateDisplayName = useCallback(async (name: string) => {
     const p = await ensureProfile(name)
     setProfile(p)
@@ -101,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       configured: isSupabaseConfigured,
       signInWithMagicLink,
+      signInWithPassword,
       updateDisplayName,
       signOut,
       refreshProfile,
@@ -110,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       signInWithMagicLink,
+      signInWithPassword,
       updateDisplayName,
       signOut,
       refreshProfile,
