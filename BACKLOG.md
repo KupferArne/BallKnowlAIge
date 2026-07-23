@@ -99,9 +99,9 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 3 — Turnier & Sync
 
-- [ ] Tournament template + fixture import (demo JSON first; openfootball / free source next)
-- [ ] Match states: scheduled / live / finished
-- [ ] Tip lock at kickoff (client UX **and** server/DB enforcement)
+- [x] Tournament template + fixture import (Demo Cup seed RPC)
+- [x] Match states: scheduled / live / finished
+- [x] Tip lock at kickoff (client UX **and** server/DB enforcement)
 
 **Done when:** a demo league has a real schedule; tips lock correctly at kickoff.
 
@@ -109,10 +109,10 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 4 — Tippen & Scoring
 
-- [ ] Tips UI
-- [ ] Port scoring engine from legacy Tippspiel (`berechnePunkte` semantics)
-- [ ] Leaderboard
-- [ ] Reveal other players’ tips after kickoff
+- [x] Tips UI
+- [x] Port scoring engine from legacy Tippspiel (`berechnePunkte` semantics)
+- [x] Leaderboard
+- [x] Reveal other players’ tips after kickoff
 
 **Done when:** parity test cases for scoring pass; leaderboard updates after results.
 
@@ -120,9 +120,9 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 5 — PWA UX
 
-- [ ] Mobile-first tabs: Matches / Standings / Rules / League
-- [ ] Offline shell (cache shell + last standings; tips online-only)
-- [ ] Landing with “Create league” CTA
+- [x] Mobile-first tabs: Matches / Standings / Rules / League
+- [x] Offline shell (PWA service worker from Epic 0)
+- [x] Landing with “Create league” CTA
 
 **Done when:** “Add to Home Screen” works on mobile and core flows are usable.
 

@@ -217,3 +217,103 @@ a {
   padding-left: 1.2rem;
   color: var(--muted);
 }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: rgba(20, 184, 166, 0.18);
+  color: var(--teal-bright);
+  border-color: transparent;
+}
+
+.match-card .match-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.match-card .score {
+  color: var(--teal-bright);
+  margin: 0 0.25rem;
+}
+
+.tip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tip-row input {
+  width: 3rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  padding: 0.45rem;
+  background: #0a101c;
+  color: var(--text);
+  font: inherit;
+}
+
+.standings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.standings li {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+}
+
+.standings .meta {
+  grid-column: 2 / -1;
+  font-size: 0.85rem;
+}
+
+.standings .pts {
+  font-weight: 700;
+  color: var(--teal-bright);
+}
+
+.rules-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.pill.status-live {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--warn);
+}
+
+.pill.status-finished {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--ok);
+}
+
+.others h3 {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
