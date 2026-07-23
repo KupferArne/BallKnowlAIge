@@ -102,7 +102,7 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 - [x] Tournament template + fixture import (Demo Cup seed RPC)
 - [x] Match states: scheduled / live / finished
 - [x] Tip lock at kickoff (client UX **and** server/DB enforcement)
-- [ ] **Competition picker** when creating/seeding a tournament (see Epic 9) — not only “Demo Cup”
+- [x] **Competition picker** when creating/seeding a tournament (see Epic 9)
 
 **Done when:** a demo league has a real schedule; tips lock correctly at kickoff.  
 *(Competition identity → Epic 9.)*
@@ -179,7 +179,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 - Chat notifications (already out of scope)
 
-**Suggested next slice:** **Epic 9** competition catalog on tournament create, or **8.6** paywall/paid flag, then **8.4** knockout updates.
+**Suggested next slice:** **8.6** paywall/paid flag, then **8.4** knockout updates / real fixture sync per competition.
 
 ---
 
@@ -189,11 +189,11 @@ When creating / seeding a tournament, the owner must pick a **known competition*
 
 ### Product requirements
 
-- [ ] On tournament create: required **competition** select (searchable)
-- [ ] Optional season / edition where relevant (e.g. `2025/26`, `2026`)
-- [ ] Store stable `competition_id` (+ display label) on `tournaments`
-- [ ] Custom / “Other” only as escape hatch (free name, no sync expectations)
-- [ ] Seed / import path uses the chosen competition (Demo Cup remains a template, not the only option)
+- [x] On tournament create: required **competition** select (searchable)
+- [x] Optional season / edition where relevant (e.g. `2025/26`, `2026`)
+- [x] Store stable `competition_id` (+ display label) on `tournaments`
+- [x] Custom / “Other” only as escape hatch (free name, no sync expectations)
+- [x] Seed / import path uses the chosen competition (Demo Cup remains a fixture template option)
 
 ### Seed catalog (v1 — curated, extendable)
 
@@ -225,7 +225,9 @@ Store as static catalog in repo first (`src/data/competitions.ts` or JSON); DB t
 **Other / meta**  
 - Friendly / invitational · Custom competition
 
-**Done when:** owner creates a tournament by picking e.g. “FIFA World Cup 2026 (Men)” or “Bundesliga (Herren) 2025/26”; league UI shows that competition; Demo Cup seed can still run for empty leagues.
+**Done when:** owner creates a tournament by picking e.g. “FIFA World Cup 2026 (Men)” or “Bundesliga (Herren) 2025/26”; league UI shows that competition; Demo Cup seed can still run for empty leagues. ✅ *(apply `00007_competition_catalog.sql`)*
+
+Catalog file: `src/data/competitions.ts` · RPC: `create_tournament`
 
 ---
 
@@ -246,8 +248,8 @@ Store as static catalog in repo first (`src/data/competitions.ts` or JSON); DB t
 3. Epic 3 + 4 — fixtures, tips, scoring ✅  
 4. Epic 5–7 — PWA polish, AI stub, admin ✅  
 5. **Epic 8** — survey UX (auto-save, standings highlight, mobile, paywall flag) — mostly ✅  
-6. **Epic 9** — competition catalog on tournament create  
-7. Epic 8 leftovers — 8.6 paid flag, 8.4 knockout sync
+6. **Epic 9** — competition catalog on tournament create ✅  
+7. Epic 8 leftovers — 8.6 paid flag, 8.4 knockout sync / real fixtures
 
 ---
 
@@ -258,7 +260,7 @@ Store as static catalog in repo first (`src/data/competitions.ts` or JSON); DB t
 | UI stack | React + Vite + TS |
 | Auth | Magic Link + password |
 | First tournament data | Demo Cup seed |
-| Competition identity | Curated catalog at tournament create (Epic 9); not free-text-only |
+| Competition identity | Curated catalog (`competitions.ts`) + `tournaments.competition_id` (Epic 9) |
 | AI in MVP | Stub heuristics (Epic 6) |
 | Supabase | `mahevkixlrxdoxtbopoj` |
 | Pages URL | https://kupferarne.github.io/BallKnowlAIge/ |

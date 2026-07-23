@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { listMyPendingTips, type PendingLeagueTips } from '../lib/bonus'
 import { createLeague, inviteUrl, listMyLeagues } from '../lib/leagues'
 import { pendingBonusPath, pendingTipsPath } from '../lib/pending'
+import { supabase } from '../lib/supabase'
 import type { LeagueRow } from '../lib/types'
 
 export function HomePage() {
@@ -16,24 +17,41 @@ export function HomePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [needsBonusMigration, setNeedsBonusMigration] = useState(false)
+  const [missingMigrations, setMissingMigrations] = useState<string[]>([])
 
   const reload = useCallback(async () => {
     if (!user) {
       setLeagues([])
       setPending([])
+      setMissingMigrations([])
       return
     }
     const rows = await listMyLeagues()
     setLeagues(rows)
+
+    const missing: string[] = []
     try {
       const p = await listMyPendingTips()
       setPending(p)
-      setNeedsBonusMigration(false)
     } catch {
       setPending([])
-      setNeedsBonusMigration(true)
+      missing.push('00006_bonus_and_pending.sql')
     }
+    if (supabase) {
+      const { error } = await supabase
+        .from('tournaments')
+        .select('competition_id')
+        .limit(1)
+      if (
+        error &&
+        (error.message.includes('competition_id') ||
+          error.message.includes('schema cache') ||
+          error.code === 'PGRST204')
+      ) {
+        missing.push('00007_competition_catalog.sql')
+      }
+    }
+    setMissingMigrations(missing)
   }, [user])
 
   useEffect(() => {
@@ -105,20 +123,25 @@ export function HomePage() {
 
       <DbSetupBanner />
 
-      {needsBonusMigration && user && (
+      {missingMigrations.length > 0 && user && (
         <div className="panel warn-panel">
-          <h2>Apply migration 00006</h2>
+          <h2>Database migrations needed</h2>
           <p className="muted">
-            Bonus questions and tip reminders need{' '}
-            <a
-              href="https://github.com/KupferArne/BallKnowlAIge/blob/main/supabase/migrations/00006_bonus_and_pending.sql"
-              target="_blank"
-              rel="noreferrer"
-            >
-              00006_bonus_and_pending.sql
-            </a>{' '}
-            in the Supabase SQL Editor.
+            Run these in the Supabase SQL Editor (in order), then reload:
           </p>
+          <ul className="setup-steps">
+            {missingMigrations.map((file) => (
+              <li key={file}>
+                <a
+                  href={`https://github.com/KupferArne/BallKnowlAIge/blob/main/supabase/migrations/${file}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {file}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -37,13 +37,16 @@ export type TournamentRow = {
   id: string
   league_id: string
   name: string
+  competition_id?: string | null
+  competition_name?: string | null
+  season?: string | null
 }
 
 export async function listTournaments(leagueId: string): Promise<TournamentRow[]> {
   const client = requireClient()
   const { data, error } = await client
     .from('tournaments')
-    .select('id, league_id, name')
+    .select('id, league_id, name, competition_id, competition_name, season')
     .eq('league_id', leagueId)
     .order('created_at', { ascending: true })
   if (error) throw error
@@ -96,13 +99,34 @@ export async function listLeagueMembers(
   }))
 }
 
-export async function seedDemoTournament(leagueId: string): Promise<TournamentRow> {
+export async function createTournament(input: {
+  leagueId: string
+  competitionId: string
+  competitionName: string
+  season?: string | null
+  seedDemo?: boolean
+}): Promise<TournamentRow> {
   const client = requireClient()
-  const { data, error } = await client.rpc('seed_demo_tournament', {
-    p_league_id: leagueId,
+  const { data, error } = await client.rpc('create_tournament', {
+    p_league_id: input.leagueId,
+    p_competition_id: input.competitionId,
+    p_competition_name: input.competitionName,
+    p_season: input.season ?? null,
+    p_seed_demo: input.seedDemo ?? false,
   })
   if (error) throw asError(error)
   return data as TournamentRow
+}
+
+/** @deprecated Prefer createTournament — kept for one-click Demo Cup. */
+export async function seedDemoTournament(leagueId: string): Promise<TournamentRow> {
+  return createTournament({
+    leagueId,
+    competitionId: 'demo-cup',
+    competitionName: 'Demo Cup',
+    season: null,
+    seedDemo: true,
+  })
 }
 
 export type MemberRow = {

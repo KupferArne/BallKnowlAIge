@@ -19,6 +19,7 @@ Run these in order in the SQL Editor (paste each file fully):
 3. `supabase/migrations/00004_league_play_bundle.sql`
 4. `supabase/migrations/00005_ai_stub_admin.sql`
 5. `supabase/migrations/00006_bonus_and_pending.sql` (bonus questions + tip reminders)
+6. `supabase/migrations/00007_competition_catalog.sql` (competition picker on tournament create)
 
 Also under **Authentication → URL configuration**:
 

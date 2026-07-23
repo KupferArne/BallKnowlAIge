@@ -6,6 +6,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 import { BonusTab } from '../components/BonusTab'
+import { CreateTournamentForm } from '../components/CreateTournamentForm'
 import { MatchCard } from '../components/MatchCard'
 import { useAuth } from '../context/AuthContext'
 import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
@@ -21,6 +22,7 @@ import { isTipLocked, matchStatusLabel } from '../lib/scoring'
 import {
   addStubAiAgent,
   computeStandings,
+  createTournament,
   deleteLeague,
   formatSupabaseError,
   getLeaguePlayData,
@@ -29,13 +31,13 @@ import {
   regenerateStubAiTips,
   removeAiAgent,
   renameLeague,
-  seedDemoTournament,
   setMatchResult,
   upsertTip,
   type AiAgentRow,
   type MatchRow,
   type MemberRow,
   type TipRow,
+  type TournamentRow,
 } from '../lib/matches'
 import type { LeagueRow } from '../lib/types'
 
@@ -77,7 +79,7 @@ export function LeaguePage() {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [nudgeCopied, setNudgeCopied] = useState(false)
-  const [tournamentName, setTournamentName] = useState<string | null>(null)
+  const [tournament, setTournament] = useState<TournamentRow | null>(null)
   const [aiName, setAiName] = useState('Stub AI')
   const [leagueNameEdit, setLeagueNameEdit] = useState('')
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null)
@@ -147,12 +149,18 @@ export function LeaguePage() {
     setLeagueNameEdit(found.name)
     setMembers(play.members)
     setAiAgents(play.ai_agents)
-    setTournamentName(play.tournament?.name ?? null)
+    setTournament(play.tournament)
     setMatches(play.matches)
     setTips(play.tips)
     setBonusQuestions(play.bonus_questions)
     setBonusAnswers(play.bonus_answers)
   }, [user, leagueId])
+
+  const tournamentName = tournament?.name ?? null
+  const competitionLabel =
+    tournament?.competition_name ||
+    tournament?.name ||
+    null
 
   useEffect(() => {
     if (!ready || !user) return
@@ -210,22 +218,35 @@ export function LeaguePage() {
     return () => window.clearTimeout(t)
   }, [highlightPending, myPendingMatches, matchGroups])
 
-  async function onSeed() {
+  async function onCreateTournament(input: {
+    competitionId: string
+    competitionName: string
+    season: string | null
+    seedDemo: boolean
+  }) {
     setBusy(true)
     setError('')
     try {
-      await seedDemoTournament(leagueId)
+      await createTournament({
+        leagueId,
+        competitionId: input.competitionId,
+        competitionName: input.competitionName,
+        season: input.season,
+        seedDemo: input.seedDemo,
+      })
       setTabAndUrl('matches')
       try {
         await reload()
+        showToast('Tournament ready ✓')
       } catch (reloadErr) {
         setError(
-          'Demo Cup was seeded, but reload failed: ' +
+          'Tournament was created, but reload failed: ' +
             formatSupabaseError(reloadErr),
         )
       }
     } catch (err) {
-      setError(formatSupabaseError(err) || 'Seed failed')
+      setError(formatSupabaseError(err) || 'Could not create tournament')
+      throw err
     } finally {
       setBusy(false)
     }
@@ -300,7 +321,13 @@ export function LeaguePage() {
             </p>
             <p className="muted">
               Role <span className="pill">{league.my_role}</span>
-              {tournamentName ? ` · ${tournamentName}` : ''}
+              {competitionLabel ? (
+                <>
+                  {' · '}
+                  <span className="pill">{competitionLabel}</span>
+                  {tournament?.season ? ` ${tournament.season}` : ''}
+                </>
+              ) : null}
             </p>
           </header>
 
@@ -387,23 +414,23 @@ export function LeaguePage() {
           {tab === 'matches' && (
             <section className="stack matches-section">
               {!tournamentName && league.my_role === 'owner' && (
-                <div className="panel">
-                  <h2>No tournament yet</h2>
+                <div className="panel stack">
+                  <h2>Create tournament</h2>
                   <p className="muted">
-                    Seed a Demo Cup with finished, live and upcoming matches.
+                    Pick the competition (e.g. World Cup, Bundesliga) and
+                    optional season. Demo fixtures are sample matches so you can
+                    tip immediately — not the real schedule yet.
                   </p>
-                  <button
-                    type="button"
-                    className="cta enabled"
-                    disabled={busy}
-                    onClick={() => void onSeed()}
-                  >
-                    {busy ? 'Seeding…' : 'Seed Demo Cup'}
-                  </button>
+                  <CreateTournamentForm
+                    busy={busy}
+                    onSubmit={onCreateTournament}
+                  />
                 </div>
               )}
               {!tournamentName && league.my_role !== 'owner' && (
-                <p className="muted">Waiting for the owner to seed the Demo Cup.</p>
+                <p className="muted">
+                  Waiting for the owner to create a tournament.
+                </p>
               )}
               {tournamentName && (
                 <div className="tabs filter-tabs" role="group" aria-label="Match filter">
@@ -751,18 +778,19 @@ export function LeaguePage() {
                       Rename league
                     </button>
                   </form>
-                  <button
-                    type="button"
-                    className="cta enabled"
-                    disabled={busy}
-                    onClick={() => void onSeed()}
-                  >
-                    {busy ? 'Working…' : 'Re-seed Demo Cup'}
-                  </button>
-                  <p className="muted">
-                    Re-seeding clears human tips for the demo tournament and
-                    rebuilds fixtures. Re-run “Regenerate AI tips” afterwards.
-                  </p>
+                  <div className="stack">
+                    <h3>Change competition / re-seed</h3>
+                    <p className="muted">
+                      Updates the competition label. Checking “demo fixtures”
+                      clears tips and rebuilds sample matches — re-run
+                      “Regenerate AI tips” afterwards.
+                    </p>
+                    <CreateTournamentForm
+                      busy={busy}
+                      submitLabel="Update tournament"
+                      onSubmit={onCreateTournament}
+                    />
+                  </div>
                   <button
                     type="button"
                     className="danger"
