@@ -76,20 +76,22 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 1 — Multi-Tenant Kern
 
-- [ ] Tables: `profiles`, `leagues`, `league_members`, `tournaments`, `matches`, `tips`, `ai_agents` (stub ok)
-- [ ] RLS: users only see their leagues / tips
-- [ ] Roles: `owner` / `player`
-- [ ] Create-league wizard
+- [x] Tables: `profiles`, `leagues`, `league_members`, `tournaments`, `matches`, `tips`, `ai_agents` (stub ok)
+- [x] RLS: users only see their leagues / tips
+- [x] Roles: `owner` / `player`
+- [x] Create-league wizard
 
-**Done when:** User A creates a league; User B cannot see it without invite.
+**Done when:** User A creates a league; User B cannot see it without invite.  
+*(Apply `00002_multi_tenant_core.sql` in Supabase, then verify with two accounts.)*
 
 ---
 
 ## Epic 2 — Auth & Invite
 
-- [ ] Supabase Auth (Magic Link and/or Google OAuth — free tier)
-- [ ] Invite link `/join/{token}`
-- [ ] Display name; leave league / owner kick
+- [x] Supabase Auth (Magic Link — free tier)
+- [x] Invite link `#/join/{token}`
+- [x] Display name
+- [ ] Leave league / owner kick *(follow-up)*
 
 **Done when:** share link joins a second user into the same league end-to-end.
 

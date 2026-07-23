@@ -8,12 +8,23 @@ Multi-tenant tournament prediction leagues (PWA).
 - Frontend: Vite + React + TypeScript → **GitHub Pages**
 - Backend: **Supabase Free** (Auth, Postgres, RLS, Edge Functions later)
 
+## One-time: apply database migration
+
+In [Supabase SQL Editor](https://supabase.com/dashboard) → **SQL** → New query, paste and run:
+
+`supabase/migrations/00002_multi_tenant_core.sql`
+
+Also under **Authentication → URL configuration** allow:
+
+- `http://localhost:5173/**`
+- `https://kupferarne.github.io/BallKnowlAIge/**`
+
 ## Local setup
 
 ```bash
 npm install
 cp .env.example .env.local
-# fill VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (anon only!)
+# fill VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (anon/publishable only!)
 npm run dev
 ```
 
