@@ -1,3 +1,5 @@
+import { countryIso, flagUrl } from './teamIcons'
+
 export type SyncedFixture = {
   external_id: string
   home_team: string
@@ -6,6 +8,13 @@ export type SyncedFixture = {
   home_goals: number | null
   away_goals: number | null
   status: 'scheduled' | 'live' | 'finished'
+  home_crest_url?: string | null
+  away_crest_url?: string | null
+}
+
+function flagCrest(name: string): string | null {
+  const iso = countryIso(name)
+  return iso ? flagUrl(iso) : null
 }
 
 type OfMatch = {
@@ -60,6 +69,8 @@ export function parseOpenfootballWorldCup(
       home_goals: hasFt ? Number(ft![0]) : null,
       away_goals: hasFt ? Number(ft![1]) : null,
       status,
+      home_crest_url: flagCrest(home),
+      away_crest_url: flagCrest(away),
     })
   })
 

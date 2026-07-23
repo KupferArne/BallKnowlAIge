@@ -29,8 +29,8 @@ type FdMatch = {
   id: number
   utcDate: string
   status: string
-  homeTeam?: { name?: string; shortName?: string }
-  awayTeam?: { name?: string; shortName?: string }
+  homeTeam?: { name?: string; shortName?: string; crest?: string }
+  awayTeam?: { name?: string; shortName?: string; crest?: string }
   score?: {
     fullTime?: { home?: number | null; away?: number | null }
   }
@@ -187,6 +187,8 @@ function mapFdMatch(m: FdMatch) {
     home_goals: finished && ftHome != null ? ftHome : null,
     away_goals: finished && ftAway != null ? ftAway : null,
     status,
+    home_crest_url: m.homeTeam?.crest ?? null,
+    away_crest_url: m.awayTeam?.crest ?? null,
   }
 }
 

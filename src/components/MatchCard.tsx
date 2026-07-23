@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { MatchRow, TipRow } from '../lib/matches'
-import { teamNameClass } from '../lib/teams'
 import { isTipLocked, matchStatusLabel, scoreTip } from '../lib/scoring'
+import type { TeamIconKind } from '../lib/teamIcons'
+import { isPlaceholderTeam } from '../lib/teams'
 import { ScoreInput } from './ScoreInput'
+import { TeamBadge } from './TeamBadge'
 
 type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
 
@@ -13,6 +15,7 @@ export function MatchCard({
   userId,
   isOwner,
   pendingTip = false,
+  iconKind = 'auto',
   onSaveTip,
   onSetResult,
 }: {
@@ -22,6 +25,7 @@ export function MatchCard({
   userId: string
   isOwner: boolean
   pendingTip?: boolean
+  iconKind?: TeamIconKind
   onSaveTip: (matchId: string, home: number, away: number) => Promise<void>
   onSetResult: (matchId: string, home: number, away: number) => Promise<void>
 }) {
@@ -149,8 +153,19 @@ export function MatchCard({
       </div>
 
       <div className="match-grid">
-        <div className={teamNameClass(match.home_team)} title={match.home_team}>
-          {match.home_team}
+        <div
+          className={
+            isPlaceholderTeam(match.home_team)
+              ? 'team-slot is-placeholder'
+              : 'team-slot'
+          }
+        >
+          <TeamBadge
+            name={match.home_team}
+            crestUrl={match.home_crest_url}
+            kind={iconKind}
+            align="start"
+          />
         </div>
         <div className="match-center">
           {locked ? (
@@ -191,8 +206,19 @@ export function MatchCard({
             </span>
           )}
         </div>
-        <div className={teamNameClass(match.away_team)} title={match.away_team}>
-          {match.away_team}
+        <div
+          className={
+            isPlaceholderTeam(match.away_team)
+              ? 'team-slot is-placeholder'
+              : 'team-slot'
+          }
+        >
+          <TeamBadge
+            name={match.away_team}
+            crestUrl={match.away_crest_url}
+            kind={iconKind}
+            align="end"
+          />
         </div>
       </div>
 

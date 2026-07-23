@@ -407,23 +407,73 @@ a {
   align-items: center;
 }
 
-.team-name {
+.team-slot {
+  min-width: 0;
+}
+
+.team-slot.is-placeholder .team-badge-name {
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: #c7d2e0;
+}
+
+.team-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-badge-end {
+  flex-direction: row;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.team-badge-start {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.team-badge-name {
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.25;
   overflow-wrap: anywhere;
   hyphens: auto;
+  min-width: 0;
 }
 
-.team-name.is-placeholder {
-  font-size: 0.92rem;
-  font-weight: 650;
-  color: #c7d2e0;
-  letter-spacing: -0.01em;
+.team-icon {
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.match-grid .team-name:last-child {
-  text-align: right;
+.team-icon-flag {
+  object-fit: cover;
+  border-radius: 0.15rem;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
+}
+
+.team-icon-crest {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.05rem;
+}
+
+.team-icon-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--teal-bright);
+  border: 1px solid var(--border);
 }
 
 .match-center {
@@ -742,14 +792,13 @@ a {
     min-width: 5rem;
   }
 
-  .team-name {
+  .team-badge-name {
     font-size: 0.95rem;
   }
 
-  .team-name.is-placeholder {
-    font-size: 0.8rem;
-    line-height: 1.25;
-    font-weight: 600;
+  .team-icon {
+    width: 1.4rem;
+    height: 1.4rem;
   }
 
   .score-input {
@@ -808,7 +857,7 @@ a {
 }
 
 @media (max-width: 360px) {
-  .team-name {
+  .team-badge-name {
     font-size: 0.88rem;
   }
 

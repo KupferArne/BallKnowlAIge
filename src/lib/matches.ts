@@ -24,6 +24,8 @@ export type MatchRow = {
   away_goals: number | null
   status: string
   external_id?: string | null
+  home_crest_url?: string | null
+  away_crest_url?: string | null
 }
 
 export type TipRow = {

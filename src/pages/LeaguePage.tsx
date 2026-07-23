@@ -12,7 +12,9 @@ import { useAuth } from '../context/AuthContext'
 import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
+import { getCompetition } from '../data/competitions'
 import { syncTournamentFixtures } from '../lib/fixtureSync'
+import { iconKindForCompetitionCategory } from '../lib/teamIcons'
 import {
   membersMissingTip,
   pendingOpenBonuses,
@@ -163,6 +165,9 @@ export function LeaguePage() {
     tournament?.competition_name ||
     tournament?.name ||
     null
+  const teamIconKind = iconKindForCompetitionCategory(
+    getCompetition(tournament?.competition_id ?? '')?.category,
+  )
 
   useEffect(() => {
     if (!ready || !user) return
@@ -539,6 +544,7 @@ export function LeaguePage() {
                         userId={user.id}
                         isOwner={league.my_role === 'owner'}
                         pendingTip={pendingMatchIds.has(match.id)}
+                        iconKind={teamIconKind}
                         onSaveTip={onSaveTip}
                         onSetResult={onSetResult}
                       />
