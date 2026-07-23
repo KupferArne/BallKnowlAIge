@@ -100,11 +100,26 @@ export async function seedDemoTournament(leagueId: string): Promise<TournamentRo
   return data as TournamentRow
 }
 
+export type MemberRow = {
+  user_id: string
+  role: string
+  display_name: string
+  kind?: 'human' | 'ai'
+}
+
+export type AiAgentRow = {
+  id: string
+  league_id: string
+  name: string
+  provider: string
+}
+
 export type LeaguePlayData = {
   tournament: TournamentRow | null
   matches: MatchRow[]
   tips: TipRow[]
-  members: { user_id: string; role: string; display_name: string }[]
+  members: MemberRow[]
+  ai_agents: AiAgentRow[]
 }
 
 function asArray<T>(value: unknown): T[] {
@@ -122,8 +137,66 @@ export async function getLeaguePlayData(leagueId: string): Promise<LeaguePlayDat
     tournament: (bundle.tournament as TournamentRow) ?? null,
     matches: asArray<MatchRow>(bundle.matches),
     tips: asArray<TipRow>(bundle.tips),
-    members: asArray(bundle.members),
+    members: asArray<MemberRow>(bundle.members),
+    ai_agents: asArray<AiAgentRow>(bundle.ai_agents),
   }
+}
+
+export async function addStubAiAgent(leagueId: string, name: string) {
+  const client = requireClient()
+  const { data, error } = await client.rpc('add_stub_ai_agent', {
+    p_league_id: leagueId,
+    p_name: name,
+  })
+  if (error) throw asError(error)
+  return data as AiAgentRow
+}
+
+export async function removeAiAgent(agentId: string) {
+  const client = requireClient()
+  const { error } = await client.rpc('remove_ai_agent', { p_agent_id: agentId })
+  if (error) throw asError(error)
+}
+
+export async function regenerateStubAiTips(leagueId: string) {
+  const client = requireClient()
+  const { data, error } = await client.rpc('generate_stub_ai_tips', {
+    p_league_id: leagueId,
+    p_agent_id: null,
+  })
+  if (error) throw asError(error)
+  return data as number
+}
+
+export async function leaveLeague(leagueId: string) {
+  const client = requireClient()
+  const { error } = await client.rpc('leave_league', { p_league_id: leagueId })
+  if (error) throw asError(error)
+}
+
+export async function kickMember(leagueId: string, userId: string) {
+  const client = requireClient()
+  const { error } = await client.rpc('kick_member', {
+    p_league_id: leagueId,
+    p_user_id: userId,
+  })
+  if (error) throw asError(error)
+}
+
+export async function renameLeague(leagueId: string, name: string) {
+  const client = requireClient()
+  const { data, error } = await client.rpc('rename_league', {
+    p_league_id: leagueId,
+    p_name: name,
+  })
+  if (error) throw asError(error)
+  return data
+}
+
+export async function deleteLeague(leagueId: string) {
+  const client = requireClient()
+  const { error } = await client.rpc('delete_league', { p_league_id: leagueId })
+  if (error) throw asError(error)
 }
 
 export async function upsertTip(

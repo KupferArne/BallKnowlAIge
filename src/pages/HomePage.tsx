@@ -176,6 +176,14 @@ export function HomePage() {
         <a href="https://github.com/KupferArne/BallKnowlAIge/blob/main/BACKLOG.md">
           Backlog
         </a>
+        {' · '}
+        <a
+          href="https://docs.google.com/forms/d/17ucmvY5K2xA2yz9S4nNun8Wb6ulcx_lmWHVjQdlg7GE/viewform"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Feedback
+        </a>
       </p>
     </div>
   )

@@ -130,7 +130,7 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 6 — AI (feature-flag / later)
 
-- [ ] Stub AI players without API cost
+- [x] Stub AI players without API cost
 - [ ] Later: OpenRouter **only** behind Edge Function + hard budget cap (Epic S)
 
 **Done when:** a league can include an AI seat without requiring a public API key.
@@ -139,9 +139,10 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Epic 7 — Admin lite
 
-- [ ] Owner: edit rules, close league, manual result correction
-- [ ] Demo seed script
-- [ ] Feedback form link
+- [x] Owner: rename/delete league, kick members, set match results, seed demo
+- [x] Demo seed + stub AI tip generation
+- [x] Feedback form link
+- [x] Players can leave a league
 
 **Done when:** owner can run a league without using the Supabase dashboard for normal ops.
 

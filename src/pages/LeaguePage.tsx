@@ -1,15 +1,24 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import {
+  addStubAiAgent,
   computeStandings,
+  deleteLeague,
   formatSupabaseError,
   getLeaguePlayData,
+  kickMember,
+  leaveLeague,
+  regenerateStubAiTips,
+  removeAiAgent,
+  renameLeague,
   seedDemoTournament,
   setMatchResult,
   upsertTip,
+  type AiAgentRow,
   type MatchRow,
+  type MemberRow,
   type TipRow,
 } from '../lib/matches'
 import { isTipLocked, matchStatusLabel, scoreTip } from '../lib/scoring'
@@ -17,20 +26,25 @@ import type { LeagueRow } from '../lib/types'
 
 type Tab = 'matches' | 'standings' | 'rules' | 'league'
 
+const FEEDBACK_URL =
+  'https://docs.google.com/forms/d/17ucmvY5K2xA2yz9S4nNun8Wb6ulcx_lmWHVjQdlg7GE/viewform'
+
 export function LeaguePage() {
   const { leagueId = '' } = useParams()
+  const navigate = useNavigate()
   const { ready, user } = useAuth()
   const [league, setLeague] = useState<LeagueRow | null>(null)
   const [tab, setTab] = useState<Tab>('matches')
   const [matches, setMatches] = useState<MatchRow[]>([])
   const [tips, setTips] = useState<TipRow[]>([])
-  const [members, setMembers] = useState<
-    { user_id: string; role: string; display_name: string }[]
-  >([])
+  const [members, setMembers] = useState<MemberRow[]>([])
+  const [aiAgents, setAiAgents] = useState<AiAgentRow[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [tournamentName, setTournamentName] = useState<string | null>(null)
+  const [aiName, setAiName] = useState('Stub AI')
+  const [leagueNameEdit, setLeagueNameEdit] = useState('')
 
   const reload = useCallback(async () => {
     if (!user || !leagueId) return
@@ -49,7 +63,9 @@ export function LeaguePage() {
     }
 
     setLeague(found)
+    setLeagueNameEdit(found.name)
     setMembers(play.members)
+    setAiAgents(play.ai_agents)
     setTournamentName(play.tournament?.name ?? null)
     setMatches(play.matches)
     setTips(play.tips)
@@ -106,7 +122,24 @@ export function LeaguePage() {
       await setMatchResult(matchId, home, away)
       await reload()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not set result')
+      setError(formatSupabaseError(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function runAdmin(action: () => Promise<void>, goHome = false) {
+    setBusy(true)
+    setError('')
+    try {
+      await action()
+      if (goHome) {
+        navigate('/')
+        return
+      }
+      await reload()
+    } catch (err) {
+      setError(formatSupabaseError(err))
     } finally {
       setBusy(false)
     }
@@ -245,25 +278,118 @@ export function LeaguePage() {
           )}
 
           {tab === 'league' && (
-            <section className="panel stack">
-              <h2>Invite</h2>
-              <button
-                type="button"
-                className="cta enabled"
-                onClick={() => {
-                  void navigator.clipboard
-                    .writeText(inviteUrl(league.invite_token))
-                    .then(() => {
-                      setCopied(true)
-                      setTimeout(() => setCopied(false), 2000)
-                    })
-                }}
-              >
-                {copied ? 'Invite link copied' : 'Copy invite link'}
-              </button>
+            <section className="stack">
+              <div className="panel stack">
+                <h2>Invite</h2>
+                <button
+                  type="button"
+                  className="cta enabled"
+                  onClick={() => {
+                    void navigator.clipboard
+                      .writeText(inviteUrl(league.invite_token))
+                      .then(() => {
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 2000)
+                      })
+                  }}
+                >
+                  {copied ? 'Invite link copied' : 'Copy invite link'}
+                </button>
+              </div>
+
               {league.my_role === 'owner' && (
-                <>
+                <div className="panel stack">
+                  <h2>AI players (stub)</h2>
+                  <p className="muted">
+                    Free heuristic tips — no OpenRouter key. Counts on the
+                    leaderboard.
+                  </p>
+                  <form
+                    className="stack"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      void runAdmin(async () => {
+                        await addStubAiAgent(leagueId, aiName)
+                        setAiName('Stub AI')
+                      })
+                    }}
+                  >
+                    <label className="field">
+                      <span>Name</span>
+                      <input
+                        value={aiName}
+                        onChange={(e) => setAiName(e.target.value)}
+                        maxLength={40}
+                        required
+                      />
+                    </label>
+                    <button className="cta enabled" type="submit" disabled={busy}>
+                      Add stub AI
+                    </button>
+                  </form>
+                  {aiAgents.length > 0 && (
+                    <>
+                      <ul className="league-list">
+                        {aiAgents.map((a) => (
+                          <li key={a.id}>
+                            <span>
+                              {a.name} <span className="pill">ai</span>
+                            </span>
+                            <button
+                              type="button"
+                              className="linkish"
+                              disabled={busy}
+                              onClick={() =>
+                                void runAdmin(() => removeAiAgent(a.id))
+                              }
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        type="button"
+                        className="cta enabled"
+                        disabled={busy}
+                        onClick={() =>
+                          void runAdmin(async () => {
+                            await regenerateStubAiTips(leagueId)
+                          })
+                        }
+                      >
+                        Regenerate AI tips
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {league.my_role === 'owner' && (
+                <div className="panel stack">
                   <h2>Owner tools</h2>
+                  <form
+                    className="stack"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      void runAdmin(async () => {
+                        await renameLeague(leagueId, leagueNameEdit)
+                      })
+                    }}
+                  >
+                    <label className="field">
+                      <span>League name</span>
+                      <input
+                        value={leagueNameEdit}
+                        onChange={(e) => setLeagueNameEdit(e.target.value)}
+                        required
+                        maxLength={80}
+                      />
+                    </label>
+                    <button className="cta enabled" type="submit" disabled={busy}>
+                      Rename league
+                    </button>
+                  </form>
                   <button
                     type="button"
                     className="cta enabled"
@@ -273,22 +399,76 @@ export function LeaguePage() {
                     {busy ? 'Working…' : 'Re-seed Demo Cup'}
                   </button>
                   <p className="muted">
-                    Re-seeding clears tips for the demo tournament and rebuilds
-                    fixtures.
+                    Re-seeding clears human tips for the demo tournament and
+                    rebuilds fixtures. Re-run “Regenerate AI tips” afterwards.
                   </p>
-                </>
+                  <button
+                    type="button"
+                    className="danger"
+                    disabled={busy}
+                    onClick={() => {
+                      if (
+                        confirm(
+                          'Delete this league and all matches/tips permanently?',
+                        )
+                      ) {
+                        void runAdmin(() => deleteLeague(leagueId), true)
+                      }
+                    }}
+                  >
+                    Delete league
+                  </button>
+                </div>
               )}
-              <h2>Members</h2>
-              <ul className="league-list">
-                {members.map((m) => (
-                  <li key={m.user_id}>
-                    <span>
-                      {m.display_name}{' '}
-                      <span className="pill">{m.role}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+
+              <div className="panel stack">
+                <h2>Members</h2>
+                <ul className="league-list">
+                  {members.map((m) => (
+                    <li key={m.user_id}>
+                      <span>
+                        {m.display_name}{' '}
+                        <span className="pill">{m.role}</span>
+                      </span>
+                      {league.my_role === 'owner' &&
+                        m.kind !== 'ai' &&
+                        m.user_id !== user?.id && (
+                          <button
+                            type="button"
+                            className="linkish"
+                            disabled={busy}
+                            onClick={() =>
+                              void runAdmin(() => kickMember(leagueId, m.user_id))
+                            }
+                          >
+                            Kick
+                          </button>
+                        )}
+                    </li>
+                  ))}
+                </ul>
+                {league.my_role !== 'owner' && (
+                  <button
+                    type="button"
+                    className="danger"
+                    disabled={busy}
+                    onClick={() => {
+                      if (confirm('Leave this league?')) {
+                        void runAdmin(() => leaveLeague(leagueId), true)
+                      }
+                    }}
+                  >
+                    Leave league
+                  </button>
+                )}
+              </div>
+
+              <div className="panel stack">
+                <h2>Feedback</h2>
+                <a className="cta enabled" href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+                  Open feedback form
+                </a>
+              </div>
             </section>
           )}
         </>
