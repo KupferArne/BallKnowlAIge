@@ -17,6 +17,31 @@ export function matchdaySortKey(kickoffAt: string | null): number {
   return new Date(kickoffAt).getTime()
 }
 
+export type MatchdayMatches = {
+  day: string
+  sortKey: number
+  matches: MatchRow[]
+}
+
+/** Group fixtures by calendar day for denser mobile match lists. */
+export function groupMatchesByMatchday(matches: MatchRow[]): MatchdayMatches[] {
+  const groups = new Map<string, MatchdayMatches>()
+  const sorted = [...matches].sort(
+    (a, b) => matchdaySortKey(a.kickoff_at) - matchdaySortKey(b.kickoff_at),
+  )
+  for (const match of sorted) {
+    const day = matchdayKey(match.kickoff_at)
+    const sortKey = matchdaySortKey(match.kickoff_at)
+    let group = groups.get(day)
+    if (!group) {
+      group = { day, sortKey, matches: [] }
+      groups.set(day, group)
+    }
+    group.matches.push(match)
+  }
+  return [...groups.values()].sort((a, b) => a.sortKey - b.sortKey)
+}
+
 export type MatchdayTipLine = {
   matchId: string
   label: string

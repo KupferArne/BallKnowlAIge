@@ -42,6 +42,9 @@ a {
   max-width: 40rem;
   margin: 0 auto;
   padding: 2.5rem 1.25rem 3rem;
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+  padding-bottom: max(3rem, calc(1.5rem + env(safe-area-inset-bottom)));
 }
 
 .hero {
@@ -112,6 +115,7 @@ a {
   background: #0a101c;
   color: var(--text);
   font: inherit;
+  font-size: 16px;
 }
 
 .cta {
@@ -220,8 +224,30 @@ a {
 
 .tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.4rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.15rem;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 0.45rem 0;
+  margin: 0 -0.15rem;
+  background: color-mix(in srgb, var(--bg0) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.filter-tabs {
+  padding: 0;
 }
 
 .tab {
@@ -229,9 +255,12 @@ a {
   background: transparent;
   color: var(--muted);
   border-radius: 999px;
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.9rem;
   font: inherit;
   cursor: pointer;
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  touch-action: manipulation;
 }
 
 .tab.active {
@@ -240,14 +269,212 @@ a {
   border-color: transparent;
 }
 
-.match-card .match-title {
-  font-size: 1.15rem;
+.matchday-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.matchday-sticky {
+  position: sticky;
+  top: 3.1rem;
+  z-index: 10;
+  margin: 0;
+  padding: 0.35rem 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg0) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.matchday-cards {
+  gap: 0.65rem;
+}
+
+.match-card {
+  gap: 0.65rem;
+  padding: 0.9rem 0.95rem;
+}
+
+.match-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.match-time .time-short {
+  display: none;
+}
+
+.match-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.55rem 0.65rem;
+  align-items: center;
+}
+
+.team-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.team-name.is-placeholder {
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #c7d2e0;
+  letter-spacing: -0.01em;
+}
+
+.match-grid .team-name:last-child {
+  text-align: right;
+}
+
+.match-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 7.5rem;
+}
+
+.result-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--teal-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-colon {
+  color: var(--muted);
   font-weight: 700;
 }
 
-.match-card .score {
+.tip-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.tip-steppers {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tip-save-btn {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  min-height: 2rem;
+}
+
+.score-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  overflow: hidden;
+  background: #0a101c;
+}
+
+.stepper-btn {
+  width: 2.4rem;
+  min-height: 2.75rem;
+  border: 0;
+  background: rgba(20, 184, 166, 0.12);
   color: var(--teal-bright);
-  margin: 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.score-input {
+  width: 2.6rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  /* 16px prevents iOS zoom on focus */
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-tip-line {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.my-tip-line strong {
+  color: var(--text);
+}
+
+.others-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.others-toggle .chev {
+  color: var(--muted);
+}
+
+.tip-list {
+  gap: 0.45rem;
+}
+
+.tip-list li {
+  padding-top: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.is-you-name {
+  color: var(--teal-bright);
+  font-weight: 650;
 }
 
 .tip-row {
@@ -266,6 +493,12 @@ a {
   background: #0a101c;
   color: var(--text);
   font: inherit;
+  font-size: 16px;
+}
+
+.result-row {
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
 }
 
 .standings {
@@ -396,14 +629,6 @@ a {
   color: var(--ok);
 }
 
-.others h3 {
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .danger {
   border: 1px solid rgba(248, 113, 113, 0.5);
   border-radius: 0.5rem;
@@ -418,3 +643,144 @@ a {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.cta,
+.linkish,
+.danger,
+.standing-toggle {
+  touch-action: manipulation;
+}
+
+@media (max-width: 520px) {
+  .app {
+    padding-top: 1.25rem;
+    padding-left: max(0.85rem, env(safe-area-inset-left));
+    padding-right: max(0.85rem, env(safe-area-inset-right));
+  }
+
+  .brand {
+    font-size: clamp(1.65rem, 9vw, 2.25rem);
+  }
+
+  .panel {
+    padding: 0.9rem;
+    gap: 0.7rem;
+    border-radius: 0.65rem;
+  }
+
+  .stack-lg {
+    gap: 0.95rem;
+  }
+
+  .match-card {
+    padding: 0.75rem 0.8rem;
+    gap: 0.55rem;
+  }
+
+  /* Home → tip → away stack: clearer for long KO placeholders */
+  .match-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .match-grid .team-name:last-child {
+    text-align: left;
+  }
+
+  .match-center {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .team-name {
+    font-size: 1rem;
+    padding: 0.15rem 0;
+  }
+
+  .team-name.is-placeholder {
+    font-size: 0.88rem;
+    line-height: 1.3;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.4rem;
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px dashed rgba(148, 163, 184, 0.28);
+  }
+
+  .tip-steppers {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .score-stepper {
+    flex: 1 1 auto;
+    max-width: 9.5rem;
+  }
+
+  .stepper-btn {
+    width: 2.75rem;
+    min-height: 3rem;
+  }
+
+  .score-input {
+    flex: 1;
+    min-height: 3rem;
+    width: 3rem;
+  }
+
+  .match-time .time-full {
+    display: none;
+  }
+
+  .match-time .time-short {
+    display: inline;
+  }
+
+  .player-detail {
+    padding-left: 0.25rem;
+  }
+
+  .standings .meta {
+    padding-left: 0.15rem;
+  }
+
+  .standing-toggle {
+    min-height: 2.75rem;
+    align-items: center;
+  }
+
+  .league-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .tip-list li {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .cta {
+    min-height: 2.75rem;
+    width: 100%;
+  }
+
+  .tip-save-btn {
+    width: auto;
+    min-height: 2rem;
+  }
+
+  .result-row .cta {
+    width: auto;
+  }
+
+  .tabs-sticky {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  .matchday-sticky {
+    top: calc(3rem + env(safe-area-inset-top, 0px));
+  }
+}
+

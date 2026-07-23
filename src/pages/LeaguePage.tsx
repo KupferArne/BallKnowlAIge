@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { MatchCard } from '../components/MatchCard'
 import { useAuth } from '../context/AuthContext'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
-import { playerTipsByMatchday } from '../lib/matchday'
+import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
+import { matchStatusLabel } from '../lib/scoring'
 import {
   addStubAiAgent,
   computeStandings,
@@ -26,6 +27,7 @@ import {
 import type { LeagueRow } from '../lib/types'
 
 type Tab = 'matches' | 'standings' | 'rules' | 'league'
+type MatchFilter = 'open' | 'all' | 'done'
 
 const FEEDBACK_URL =
   'https://docs.google.com/forms/d/17ucmvY5K2xA2yz9S4nNun8Wb6ulcx_lmWHVjQdlg7GE/viewform'
@@ -48,6 +50,7 @@ export function LeaguePage() {
   const [leagueNameEdit, setLeagueNameEdit] = useState('')
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null)
   const [toast, setToast] = useState('')
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('open')
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
@@ -87,6 +90,20 @@ export function LeaguePage() {
   const standings = useMemo(
     () => computeStandings(matches, tips, members),
     [matches, tips, members],
+  )
+
+  const filteredMatches = useMemo(() => {
+    if (matchFilter === 'all') return matches
+    return matches.filter((m) => {
+      const status = matchStatusLabel(m.status, m.kickoff_at)
+      if (matchFilter === 'done') return status === 'finished'
+      return status !== 'finished'
+    })
+  }, [matches, matchFilter])
+
+  const matchGroups = useMemo(
+    () => groupMatchesByMatchday(filteredMatches),
+    [filteredMatches],
   )
 
   async function onSeed() {
@@ -183,7 +200,7 @@ export function LeaguePage() {
             </p>
           </header>
 
-          <nav className="tabs" aria-label="League sections">
+          <nav className="tabs tabs-sticky" aria-label="League sections">
             {(
               [
                 ['matches', 'Matches'],
@@ -211,7 +228,7 @@ export function LeaguePage() {
           )}
 
           {tab === 'matches' && (
-            <section className="stack">
+            <section className="stack matches-section">
               {!tournamentName && league.my_role === 'owner' && (
                 <div className="panel">
                   <h2>No tournament yet</h2>
@@ -231,17 +248,61 @@ export function LeaguePage() {
               {!tournamentName && league.my_role !== 'owner' && (
                 <p className="muted">Waiting for the owner to seed the Demo Cup.</p>
               )}
-              {matches.map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  tips={tips.filter((t) => t.match_id === match.id)}
-                  members={members}
-                  userId={user.id}
-                  isOwner={league.my_role === 'owner'}
-                  onSaveTip={onSaveTip}
-                  onSetResult={onSetResult}
-                />
+              {tournamentName && (
+                <div className="tabs filter-tabs" role="group" aria-label="Match filter">
+                  {(
+                    [
+                      ['open', 'Open'],
+                      ['all', 'All'],
+                      ['done', 'Done'],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={matchFilter === id ? 'tab active' : 'tab'}
+                      onClick={() => setMatchFilter(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tournamentName && matchGroups.length === 0 && (
+                <p className="muted">
+                  No matches in this filter.
+                  {matchFilter !== 'all' && (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        className="linkish"
+                        onClick={() => setMatchFilter('all')}
+                      >
+                        Show all
+                      </button>
+                    </>
+                  )}
+                </p>
+              )}
+              {matchGroups.map((group) => (
+                <div key={group.day} className="matchday-section">
+                  <h2 className="matchday-sticky">{group.day}</h2>
+                  <div className="stack matchday-cards">
+                    {group.matches.map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        tips={tips.filter((t) => t.match_id === match.id)}
+                        members={members}
+                        userId={user.id}
+                        isOwner={league.my_role === 'owner'}
+                        onSaveTip={onSaveTip}
+                        onSetResult={onSetResult}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </section>
           )}

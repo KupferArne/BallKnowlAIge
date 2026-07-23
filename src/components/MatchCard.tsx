@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { MatchRow, TipRow } from '../lib/matches'
+import { teamNameClass } from '../lib/teams'
 import { isTipLocked, matchStatusLabel, scoreTip } from '../lib/scoring'
+import { ScoreStepper } from './ScoreStepper'
 
 type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
 
@@ -31,6 +33,7 @@ export function MatchCard({
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [saveError, setSaveError] = useState('')
   const [resultBusy, setResultBusy] = useState(false)
+  const [tipsOpen, setTipsOpen] = useState(status === 'live')
   const timer = useRef<number | null>(null)
   const skipNextAuto = useRef(false)
 
@@ -56,11 +59,7 @@ export function MatchCard({
 
     const h = Number(home)
     const a = Number(away)
-    if (
-      myTip &&
-      myTip.home_goals === h &&
-      myTip.away_goals === a
-    ) {
+    if (myTip && myTip.home_goals === h && myTip.away_goals === a) {
       return
     }
 
@@ -87,6 +86,7 @@ export function MatchCard({
 
   async function submitTip(e: FormEvent) {
     e.preventDefault()
+    if (home === '' || away === '') return
     if (timer.current) window.clearTimeout(timer.current)
     setSaveState('saving')
     setSaveError('')
@@ -120,6 +120,13 @@ export function MatchCard({
       })
     : 'TBD'
 
+  const timeOnly = match.kickoff_at
+    ? new Date(match.kickoff_at).toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'TBD'
+
   const saveLabel =
     saveState === 'pending'
       ? 'Saving soon…'
@@ -131,65 +138,90 @@ export function MatchCard({
             ? 'Error'
             : 'Auto-saves'
 
-  return (
-    <article className="panel match-card">
-      <div className="row-between">
-        <span className={`pill status-${status}`}>{status}</span>
-        <span className="muted">{kickoffLabel}</span>
-      </div>
-      <h2 className="match-title">
-        {match.home_team}{' '}
-        <span className="score">
-          {match.home_goals ?? '–'}:{match.away_goals ?? '–'}
-        </span>{' '}
-        {match.away_team}
-      </h2>
+  const myPts =
+    myTip && match.home_goals !== null && match.away_goals !== null
+      ? scoreTip(
+          myTip.home_goals,
+          myTip.away_goals,
+          match.home_goals,
+          match.away_goals,
+        )
+      : null
 
-      {!locked ? (
-        <form className="tip-row" onSubmit={submitTip}>
-          <input
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={home}
-            onChange={(e) => setHome(e.target.value)}
-            aria-label="Home tip"
-            required
-          />
-          <span>:</span>
-          <input
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={away}
-            onChange={(e) => setAway(e.target.value)}
-            aria-label="Away tip"
-            required
-          />
-          <button className="cta enabled" type="submit" disabled={saveState === 'saving'}>
-            Save now
-          </button>
-          <span
-            className={
-              saveState === 'saved'
-                ? 'save-status ok-text'
-                : saveState === 'error'
-                  ? 'save-status warn-text'
-                  : 'save-status muted'
-            }
-            role="status"
-          >
-            {saveLabel}
-          </span>
-        </form>
-      ) : (
-        <p className="muted">
+  return (
+    <article className={`panel match-card status-${status}`}>
+      <div className="match-meta">
+        <span className={`pill status-${status}`}>{status}</span>
+        <span className="muted match-time" title={kickoffLabel}>
+          <span className="time-full">{kickoffLabel}</span>
+          <span className="time-short">{timeOnly}</span>
+        </span>
+      </div>
+
+      <div className="match-grid">
+        <div className={teamNameClass(match.home_team)} title={match.home_team}>
+          {match.home_team}
+        </div>
+        <div className="match-center" aria-hidden={false}>
+          {locked ? (
+            <div className="result-score">
+              <span>{match.home_goals ?? '–'}</span>
+              <span className="score-colon">:</span>
+              <span>{match.away_goals ?? '–'}</span>
+            </div>
+          ) : (
+            <form className="tip-form" onSubmit={submitTip}>
+              <div className="tip-steppers">
+                <ScoreStepper
+                  value={home}
+                  onChange={setHome}
+                  ariaLabel={`${match.home_team} tip`}
+                  disabled={saveState === 'saving'}
+                />
+                <span className="score-colon">:</span>
+                <ScoreStepper
+                  value={away}
+                  onChange={setAway}
+                  ariaLabel={`${match.away_team} tip`}
+                  disabled={saveState === 'saving'}
+                />
+              </div>
+              <div className="tip-actions">
+                <span
+                  className={
+                    saveState === 'saved'
+                      ? 'save-status ok-text'
+                      : saveState === 'error'
+                        ? 'save-status warn-text'
+                        : 'save-status muted'
+                  }
+                  role="status"
+                >
+                  {saveLabel}
+                </span>
+                <button
+                  className="cta enabled tip-save-btn"
+                  type="submit"
+                  disabled={saveState === 'saving' || home === '' || away === ''}
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+        <div className={teamNameClass(match.away_team)} title={match.away_team}>
+          {match.away_team}
+        </div>
+      </div>
+
+      {locked && (
+        <p className="my-tip-line muted">
           Your tip:{' '}
-          {myTip
-            ? `${myTip.home_goals}:${myTip.away_goals}`
-            : '— (no tip)'}
-          {match.home_goals !== null &&
-            match.away_goals !== null &&
-            myTip &&
-            ` · ${scoreTip(myTip.home_goals, myTip.away_goals, match.home_goals, match.away_goals)} pts`}
+          <strong>
+            {myTip ? `${myTip.home_goals}:${myTip.away_goals}` : '—'}
+          </strong>
+          {myPts != null ? ` · ${myPts} pts` : ''}
         </p>
       )}
 
@@ -197,48 +229,63 @@ export function MatchCard({
 
       {locked && (
         <div className="others">
-          <h3>Tips</h3>
-          <ul className="league-list">
-            {members.map((m) => {
-              const tip = tips.find((t) => t.user_id === m.user_id)
-              const pts =
-                tip && match.home_goals !== null && match.away_goals !== null
-                  ? scoreTip(
-                      tip.home_goals,
-                      tip.away_goals,
-                      match.home_goals,
-                      match.away_goals,
-                    )
-                  : null
-              return (
-                <li key={m.user_id}>
-                  <span>{m.display_name}</span>
-                  <span>
-                    {tip ? `${tip.home_goals}:${tip.away_goals}` : '—'}
-                    {pts !== null ? ` (${pts})` : ''}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
+          <button
+            type="button"
+            className="others-toggle"
+            aria-expanded={tipsOpen}
+            onClick={() => setTipsOpen((o) => !o)}
+          >
+            Tips ({members.length})
+            <span className="chev">{tipsOpen ? '▾' : '▸'}</span>
+          </button>
+          {tipsOpen && (
+            <ul className="league-list tip-list">
+              {members.map((m) => {
+                const tip = tips.find((t) => t.user_id === m.user_id)
+                const pts =
+                  tip &&
+                  match.home_goals !== null &&
+                  match.away_goals !== null
+                    ? scoreTip(
+                        tip.home_goals,
+                        tip.away_goals,
+                        match.home_goals,
+                        match.away_goals,
+                      )
+                    : null
+                return (
+                  <li key={m.user_id}>
+                    <span className={m.user_id === userId ? 'is-you-name' : undefined}>
+                      {m.display_name}
+                      {m.user_id === userId ? ' (you)' : ''}
+                    </span>
+                    <span>
+                      {tip ? `${tip.home_goals}:${tip.away_goals}` : '—'}
+                      {pts !== null ? ` (${pts})` : ''}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
       )}
 
       {isOwner && status !== 'finished' && locked && (
-        <form className="tip-row" onSubmit={submitResult}>
+        <form className="tip-row result-row" onSubmit={submitResult}>
           <span className="muted">Set result</span>
-          <input
-            inputMode="numeric"
+          <ScoreStepper
             value={resHome}
-            onChange={(e) => setResHome(e.target.value)}
-            required
+            onChange={setResHome}
+            ariaLabel="Home result"
+            disabled={resultBusy}
           />
-          <span>:</span>
-          <input
-            inputMode="numeric"
+          <span className="score-colon">:</span>
+          <ScoreStepper
             value={resAway}
-            onChange={(e) => setResAway(e.target.value)}
-            required
+            onChange={setResAway}
+            ariaLabel="Away result"
+            disabled={resultBusy}
           />
           <button className="cta enabled" type="submit" disabled={resultBusy}>
             Save result
