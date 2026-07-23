@@ -1,0 +1,120 @@
+:root {
+  --bg0: #0b1220;
+  --bg1: #121a2b;
+  --teal: #0f766e;
+  --teal-bright: #14b8a6;
+  --text: #e8eef7;
+  --muted: #9aa8bc;
+  --warn: #fbbf24;
+  --ok: #34d399;
+  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg0);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(15, 118, 110, 0.35), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, rgba(20, 184, 166, 0.18), transparent 50%),
+    var(--bg0);
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 3rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.brand {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--teal-bright);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lede {
+  margin: 0;
+  color: var(--muted);
+  max-width: 34rem;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.cta {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.1rem;
+  background: var(--teal);
+  color: white;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.link {
+  color: var(--teal-bright);
+}
+
+.status {
+  margin-top: 2.5rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bg1) 90%, transparent);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.status h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.status ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.warn {
+  color: var(--warn);
+}
