@@ -89,7 +89,7 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 ## Epic 2 — Auth & Invite
 
 - [x] Supabase Auth (Magic Link — free tier)
-- [x] Invite link `#/join/{token}`
+- [x] Invite link `/join/{token}`
 - [x] Display name
 - [ ] Leave league / owner kick *(follow-up)*
 

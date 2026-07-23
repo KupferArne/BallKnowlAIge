@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { authEmailRedirectTo } from '../lib/appUrl'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { ensureProfile } from '../lib/leagues'
 import type { Profile } from '../lib/types'
@@ -74,10 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithMagicLink = useCallback(async (email: string) => {
     if (!supabase) throw new Error('Supabase is not configured')
-    const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`.replace(/\/?$/, '/')
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
+      options: { emailRedirectTo: authEmailRedirectTo() },
     })
     if (error) throw error
   }, [])

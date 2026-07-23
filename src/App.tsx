@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { HomePage } from './pages/HomePage'
 import { JoinPage } from './pages/JoinPage'
@@ -6,10 +6,12 @@ import { LeaguePage } from './pages/LeaguePage'
 import { LoginPage } from './pages/LoginPage'
 import './App.css'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+
 function App() {
   return (
     <AuthProvider>
-      <HashRouter>
+      <BrowserRouter basename={basename}>
         <div className="app">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -19,7 +21,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </HashRouter>
+      </BrowserRouter>
     </AuthProvider>
   )
 }

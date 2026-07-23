@@ -14,10 +14,14 @@ In [Supabase SQL Editor](https://supabase.com/dashboard) → **SQL** → New que
 
 `supabase/migrations/00002_multi_tenant_core.sql`
 
-Also under **Authentication → URL configuration** allow:
+Also under **Authentication → URL configuration**:
 
-- `http://localhost:5173/**`
-- `https://kupferarne.github.io/BallKnowlAIge/**`
+| Setting | Value |
+|---|---|
+| **Site URL** | `https://kupferarne.github.io/BallKnowlAIge/` |
+| **Redirect URLs** | `https://kupferarne.github.io/BallKnowlAIge/**` and `http://localhost:5173/**` |
+
+If **Site URL** stays on `http://localhost:...`, Magic Links open localhost and fail unless `npm run dev` is running. After changing Site URL, request a **new** Magic Link (old emails stay wrong).
 
 ## Local setup
 

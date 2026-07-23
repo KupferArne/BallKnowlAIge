@@ -42,5 +42,5 @@ export async function joinLeagueByToken(token: string): Promise<LeagueRow> {
 
 export function inviteUrl(token: string): string {
   const base = `${window.location.origin}${import.meta.env.BASE_URL}`.replace(/\/?$/, '/')
-  return `${base}#/join/${token}`
+  return `${base}join/${token}`
 }
