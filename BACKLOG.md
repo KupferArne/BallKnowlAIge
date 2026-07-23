@@ -102,8 +102,10 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 - [x] Tournament template + fixture import (Demo Cup seed RPC)
 - [x] Match states: scheduled / live / finished
 - [x] Tip lock at kickoff (client UX **and** server/DB enforcement)
+- [ ] **Competition picker** when creating/seeding a tournament (see Epic 9) — not only “Demo Cup”
 
-**Done when:** a demo league has a real schedule; tips lock correctly at kickoff.
+**Done when:** a demo league has a real schedule; tips lock correctly at kickoff.  
+*(Competition identity → Epic 9.)*
 
 ---
 
@@ -177,7 +179,53 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 - Chat notifications (already out of scope)
 
-**Suggested next slice:** **8.6** paywall/paid flag, then **8.4** knockout opponent updates.
+**Suggested next slice:** **Epic 9** competition catalog on tournament create, or **8.6** paywall/paid flag, then **8.4** knockout updates.
+
+---
+
+## Epic 9 — Competition catalog (tournament create)
+
+When creating / seeding a tournament, the owner must pick a **known competition** (not a free-text-only label). That drives display name, later fixture sync, and AI/bonus context.
+
+### Product requirements
+
+- [ ] On tournament create: required **competition** select (searchable)
+- [ ] Optional season / edition where relevant (e.g. `2025/26`, `2026`)
+- [ ] Store stable `competition_id` (+ display label) on `tournaments`
+- [ ] Custom / “Other” only as escape hatch (free name, no sync expectations)
+- [ ] Seed / import path uses the chosen competition (Demo Cup remains a template, not the only option)
+
+### Seed catalog (v1 — curated, extendable)
+
+Store as static catalog in repo first (`src/data/competitions.ts` or JSON); DB table later if needed.
+
+**FIFA / UEFA / CONMEBOL (national teams)**  
+- FIFA World Cup (Men) · FIFA World Cup (Women)  
+- UEFA European Championship (Men / Women)  
+- Copa América · AFCON · Asian Cup · Gold Cup  
+- UEFA Nations League · CONMEBOL Qualifiers / UEFA Qualifiers (as editions)  
+- Olympics Football (Men / Women) · FIFA Confederations (legacy/rare)
+
+**Club — Europe**  
+- UEFA Champions League · Europa League · Conference League · Super Cup  
+- Premier League · La Liga · Serie A · Bundesliga · Ligue 1 · Eredivisie · Primeira Liga · Scottish Premiership  
+- FA Cup · EFL Cup · DFB-Pokal · Copa del Rey · Coppa Italia · Coupe de France  
+- German 2. Bundesliga · English Championship (optional v1.1)
+
+**Club — Germany focus (explicit ask)**  
+- Bundesliga (Herren) · 2. Bundesliga · 3. Liga  
+- Frauen-Bundesliga · DFB-Pokal (Herren / Frauen)  
+- DFL-Supercup
+
+**Club — Americas / other**  
+- MLS · Liga MX · Brasileirão · Argentine Primera  
+- Copa Libertadores · Copa Sudamericana  
+- Saudi Pro League · A-League (optional)
+
+**Other / meta**  
+- Friendly / invitational · Custom competition
+
+**Done when:** owner creates a tournament by picking e.g. “FIFA World Cup 2026 (Men)” or “Bundesliga (Herren) 2025/26”; league UI shows that competition; Demo Cup seed can still run for empty leagues.
 
 ---
 
@@ -197,7 +245,9 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 2. Epic 1 + 2 — leagues, auth, invites ✅  
 3. Epic 3 + 4 — fixtures, tips, scoring ✅  
 4. Epic 5–7 — PWA polish, AI stub, admin ✅  
-5. **Epic 8** — survey UX (auto-save, standings highlight, mobile, paywall flag)
+5. **Epic 8** — survey UX (auto-save, standings highlight, mobile, paywall flag) — mostly ✅  
+6. **Epic 9** — competition catalog on tournament create  
+7. Epic 8 leftovers — 8.6 paid flag, 8.4 knockout sync
 
 ---
 
@@ -208,6 +258,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 | UI stack | React + Vite + TS |
 | Auth | Magic Link + password |
 | First tournament data | Demo Cup seed |
+| Competition identity | Curated catalog at tournament create (Epic 9); not free-text-only |
 | AI in MVP | Stub heuristics (Epic 6) |
 | Supabase | `mahevkixlrxdoxtbopoj` |
 | Pages URL | https://kupferarne.github.io/BallKnowlAIge/ |
