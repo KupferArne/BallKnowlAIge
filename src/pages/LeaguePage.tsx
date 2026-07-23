@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { MatchCard } from '../components/MatchCard'
 import { useAuth } from '../context/AuthContext'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
+import { playerTipsByMatchday } from '../lib/matchday'
 import {
   addStubAiAgent,
   computeStandings,
@@ -21,7 +23,6 @@ import {
   type MemberRow,
   type TipRow,
 } from '../lib/matches'
-import { isTipLocked, matchStatusLabel, scoreTip } from '../lib/scoring'
 import type { LeagueRow } from '../lib/types'
 
 type Tab = 'matches' | 'standings' | 'rules' | 'league'
@@ -45,6 +46,13 @@ export function LeaguePage() {
   const [tournamentName, setTournamentName] = useState<string | null>(null)
   const [aiName, setAiName] = useState('Stub AI')
   const [leagueNameEdit, setLeagueNameEdit] = useState('')
+  const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null)
+  const [toast, setToast] = useState('')
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    window.setTimeout(() => setToast((t) => (t === msg ? '' : t)), 2200)
+  }, [])
 
   const reload = useCallback(async () => {
     if (!user || !leagueId) return
@@ -102,18 +110,20 @@ export function LeaguePage() {
     }
   }
 
-  async function onSaveTip(matchId: string, home: number, away: number) {
-    setBusy(true)
-    setError('')
-    try {
-      await upsertTip(matchId, home, away)
-      await reload()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save tip')
-    } finally {
-      setBusy(false)
-    }
-  }
+  const onSaveTip = useCallback(
+    async (matchId: string, home: number, away: number) => {
+      setError('')
+      const tip = await upsertTip(matchId, home, away)
+      setTips((prev) => {
+        const rest = prev.filter(
+          (t) => !(t.match_id === matchId && t.user_id === tip.user_id),
+        )
+        return [...rest, tip]
+      })
+      showToast('Tip saved ✓')
+    },
+    [showToast],
+  )
 
   async function onSetResult(matchId: string, home: number, away: number) {
     setBusy(true)
@@ -194,6 +204,11 @@ export function LeaguePage() {
           </nav>
 
           {error && <p className="warn-text">{error}</p>}
+          {toast && (
+            <p className="toast ok-text" role="status">
+              {toast}
+            </p>
+          )}
 
           {tab === 'matches' && (
             <section className="stack">
@@ -224,7 +239,6 @@ export function LeaguePage() {
                   members={members}
                   userId={user.id}
                   isOwner={league.my_role === 'owner'}
-                  busy={busy}
                   onSaveTip={onSaveTip}
                   onSetResult={onSetResult}
                 />
@@ -233,27 +247,87 @@ export function LeaguePage() {
           )}
 
           {tab === 'standings' && (
-            <section className="panel">
+            <section className="panel stack">
               <h2>Leaderboard</h2>
-              {standings.length === 0 ? (
-                <p className="muted">No scored matches yet.</p>
-              ) : (
-                <ol className="standings">
-                  {standings.map((row, i) => (
-                    <li key={row.userId}>
-                      <span className="rank">{i + 1}.</span>
-                      <span className="name">
-                        {row.name}
-                        {row.userId === user.id ? ' (you)' : ''}
-                      </span>
-                      <span className="pts">{row.points} pts</span>
+              <p className="muted">
+                Tap a player to expand tips by matchday. Others’ tips show after
+                kickoff.
+              </p>
+              <ol className="standings">
+                {(standings.length
+                  ? standings
+                  : members.map((m) => ({
+                      userId: m.user_id,
+                      name: m.display_name,
+                      points: 0,
+                      exact: 0,
+                      tipped: 0,
+                    }))
+                ).map((row, i) => {
+                  const isYou = row.userId === user.id
+                  const open = expandedPlayer === row.userId
+                  const groups = open
+                    ? playerTipsByMatchday(row.userId, matches, tips, user.id)
+                    : []
+                  return (
+                    <li
+                      key={row.userId}
+                      className={isYou ? 'standing-row is-you' : 'standing-row'}
+                    >
+                      <button
+                        type="button"
+                        className="standing-toggle"
+                        onClick={() =>
+                          setExpandedPlayer((id) =>
+                            id === row.userId ? null : row.userId,
+                          )
+                        }
+                        aria-expanded={open}
+                      >
+                        <span className="rank">{i + 1}.</span>
+                        <span className="name">
+                          {row.name}
+                          {isYou ? ' (you)' : ''}
+                          <span className="chev">{open ? '▾' : '▸'}</span>
+                        </span>
+                        <span className="pts">{row.points} pts</span>
+                      </button>
                       <span className="muted meta">
                         {row.exact} exact · {row.tipped} tipped
                       </span>
+                      {open && (
+                        <div className="player-detail">
+                          {groups.length === 0 ? (
+                            <p className="muted">No visible tips yet.</p>
+                          ) : (
+                            groups.map((g) => (
+                              <div key={g.day} className="matchday-block">
+                                <div className="matchday-head">
+                                  <strong>{g.day}</strong>
+                                  <span className="muted">{g.dayPoints} pts</span>
+                                </div>
+                                <ul className="matchday-lines">
+                                  {g.lines.map((line) => (
+                                    <li key={line.matchId}>
+                                      <span>{line.label}</span>
+                                      <span>
+                                        tip {line.tipLabel}
+                                        {line.points != null
+                                          ? ` · ${line.points} pts`
+                                          : ''}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </li>
-                  ))}
-                </ol>
-              )}
+                  )
+                })}
+              </ol>
             </section>
           )}
 
@@ -479,163 +553,3 @@ export function LeaguePage() {
   )
 }
 
-function MatchCard({
-  match,
-  tips,
-  members,
-  userId,
-  isOwner,
-  busy,
-  onSaveTip,
-  onSetResult,
-}: {
-  match: MatchRow
-  tips: TipRow[]
-  members: { user_id: string; display_name: string }[]
-  userId: string
-  isOwner: boolean
-  busy: boolean
-  onSaveTip: (matchId: string, home: number, away: number) => Promise<void>
-  onSetResult: (matchId: string, home: number, away: number) => Promise<void>
-}) {
-  const myTip = tips.find((t) => t.user_id === userId)
-  const locked = isTipLocked(match.kickoff_at)
-  const status = matchStatusLabel(match.status, match.kickoff_at)
-  const [home, setHome] = useState(myTip?.home_goals?.toString() ?? '')
-  const [away, setAway] = useState(myTip?.away_goals?.toString() ?? '')
-  const [resHome, setResHome] = useState(match.home_goals?.toString() ?? '')
-  const [resAway, setResAway] = useState(match.away_goals?.toString() ?? '')
-
-  useEffect(() => {
-    setHome(myTip?.home_goals?.toString() ?? '')
-    setAway(myTip?.away_goals?.toString() ?? '')
-  }, [myTip?.home_goals, myTip?.away_goals])
-
-  useEffect(() => {
-    setResHome(match.home_goals?.toString() ?? '')
-    setResAway(match.away_goals?.toString() ?? '')
-  }, [match.home_goals, match.away_goals])
-
-  function submitTip(e: FormEvent) {
-    e.preventDefault()
-    void onSaveTip(match.id, Number(home), Number(away))
-  }
-
-  function submitResult(e: FormEvent) {
-    e.preventDefault()
-    void onSetResult(match.id, Number(resHome), Number(resAway))
-  }
-
-  const kickoffLabel = match.kickoff_at
-    ? new Date(match.kickoff_at).toLocaleString(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : 'TBD'
-
-  return (
-    <article className="panel match-card">
-      <div className="row-between">
-        <span className={`pill status-${status}`}>{status}</span>
-        <span className="muted">{kickoffLabel}</span>
-      </div>
-      <h2 className="match-title">
-        {match.home_team}{' '}
-        <span className="score">
-          {match.home_goals ?? '–'}:{match.away_goals ?? '–'}
-        </span>{' '}
-        {match.away_team}
-      </h2>
-
-      {!locked ? (
-        <form className="tip-row" onSubmit={submitTip}>
-          <input
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={home}
-            onChange={(e) => setHome(e.target.value)}
-            aria-label="Home tip"
-            required
-          />
-          <span>:</span>
-          <input
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={away}
-            onChange={(e) => setAway(e.target.value)}
-            aria-label="Away tip"
-            required
-          />
-          <button className="cta enabled" type="submit" disabled={busy}>
-            Save tip
-          </button>
-        </form>
-      ) : (
-        <p className="muted">
-          Your tip:{' '}
-          {myTip
-            ? `${myTip.home_goals}:${myTip.away_goals}`
-            : '— (no tip)'}
-          {match.home_goals !== null &&
-            match.away_goals !== null &&
-            myTip &&
-            ` · ${scoreTip(myTip.home_goals, myTip.away_goals, match.home_goals, match.away_goals)} pts`}
-        </p>
-      )}
-
-      {locked && (
-        <div className="others">
-          <h3>Tips</h3>
-          <ul className="league-list">
-            {members.map((m) => {
-              const tip = tips.find((t) => t.user_id === m.user_id)
-              const pts =
-                tip && match.home_goals !== null && match.away_goals !== null
-                  ? scoreTip(
-                      tip.home_goals,
-                      tip.away_goals,
-                      match.home_goals,
-                      match.away_goals,
-                    )
-                  : null
-              return (
-                <li key={m.user_id}>
-                  <span>{m.display_name}</span>
-                  <span>
-                    {tip ? `${tip.home_goals}:${tip.away_goals}` : '—'}
-                    {pts !== null ? ` (${pts})` : ''}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
-
-      {isOwner && status !== 'finished' && locked && (
-        <form className="tip-row" onSubmit={submitResult}>
-          <span className="muted">Set result</span>
-          <input
-            inputMode="numeric"
-            value={resHome}
-            onChange={(e) => setResHome(e.target.value)}
-            required
-          />
-          <span>:</span>
-          <input
-            inputMode="numeric"
-            value={resAway}
-            onChange={(e) => setResAway(e.target.value)}
-            required
-          />
-          <button className="cta enabled" type="submit" disabled={busy}>
-            Save result
-          </button>
-        </form>
-      )}
-    </article>
-  )
-}

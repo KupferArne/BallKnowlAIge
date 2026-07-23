@@ -156,14 +156,14 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 | # | Request | Notes | Status |
 |---|---|---|---|
-| 8.1 | **Auto-save tips** or “Save all” + **visual confirmation** | Per-match save exists; add debounce auto-save + toast/checkmark | [ ] |
-| 8.2 | **Leaderboard: highlight own row** | Standings tab — stronger “you” styling | [ ] |
+| 8.1 | **Auto-save tips** or “Save all” + **visual confirmation** | Debounced auto-save + “Saved ✓” + toast | [x] |
+| 8.2 | **Leaderboard: highlight own row** | Standings tab — stronger “you” styling | [x] |
 | 8.3 | **Bonus / special questions scoring** | Cap or rebalance vs match tips (champ + top scorer felt ~20 pts / too heavy) | [ ] (not in app yet — design when bonuses land) |
 | 8.4 | **Knockout opponent updates** | Avoid manual placeholder pain; auto-fill from previous results / sync | [ ] (partially future fixtures sync) |
 | 8.5 | **Mobile UX polish** | Densify match cards, safer tip inputs, knockout readability | [ ] |
 | 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | [ ] |
 | 8.10 | **Tip reminders + deep link** | Nudge players who miss matches; email or in-app (not Chat). Link opens pending tips directly | [ ] |
-| 8.11 | **Leaderboard player detail** | Expand a row → tips / matches / points **grouped by matchday**; see own + others (after kickoff rules) | [ ] |
+| 8.11 | **Leaderboard player detail** | Expand a row → tips / matches / points **grouped by matchday**; see own + others (after kickoff rules) | [x] |
 
 ### Nice to have
 
@@ -177,9 +177,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 - Chat notifications (already out of scope)
 
-**Suggested next slice:** 8.1 + 8.2 (quick UX wins), then **8.11** leaderboard detail, then 8.5 / 8.10 reminders, then 8.6 paywall flag.
-
-**Note on 8.11 vs today:** Match cards already show others’ tips **after kickoff**. What’s missing is the **collapsible per-player history on the standings**, grouped by matchday.
+**Suggested next slice:** **8.5** mobile UX polish, then **8.10** tip reminders + deeplink, then **8.6** paywall/paid flag.
 
 ---
 
