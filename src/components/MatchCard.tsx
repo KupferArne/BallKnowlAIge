@@ -12,6 +12,7 @@ export function MatchCard({
   members,
   userId,
   isOwner,
+  pendingTip = false,
   onSaveTip,
   onSetResult,
 }: {
@@ -20,6 +21,7 @@ export function MatchCard({
   members: { user_id: string; display_name: string }[]
   userId: string
   isOwner: boolean
+  pendingTip?: boolean
   onSaveTip: (matchId: string, home: number, away: number) => Promise<void>
   onSetResult: (matchId: string, home: number, away: number) => Promise<void>
 }) {
@@ -133,9 +135,13 @@ export function MatchCard({
       : null
 
   return (
-    <article className={`panel match-card status-${status}`}>
+    <article
+      className={`panel match-card status-${status}${pendingTip ? ' is-pending' : ''}`}
+      id={`match-${match.id}`}
+    >
       <div className="match-meta">
         <span className={`pill status-${status}`}>{status}</span>
+        {pendingTip && <span className="pill pending-pill">Tip needed</span>}
         <span className="muted match-time" title={kickoffLabel}>
           <span className="time-full">{kickoffLabel}</span>
           <span className="time-short">{timeOnly}</span>

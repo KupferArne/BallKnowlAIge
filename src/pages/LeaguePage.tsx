@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
+import { BonusTab } from '../components/BonusTab'
 import { MatchCard } from '../components/MatchCard'
 import { useAuth } from '../context/AuthContext'
+import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
-import { matchStatusLabel } from '../lib/scoring'
+import {
+  membersMissingTip,
+  pendingOpenBonuses,
+  pendingOpenMatches,
+  pendingTipsUrl,
+} from '../lib/pending'
+import { isTipLocked, matchStatusLabel } from '../lib/scoring'
 import {
   addStubAiAgent,
   computeStandings,
@@ -26,8 +39,21 @@ import {
 } from '../lib/matches'
 import type { LeagueRow } from '../lib/types'
 
-type Tab = 'matches' | 'standings' | 'rules' | 'league'
+type Tab = 'matches' | 'standings' | 'bonus' | 'rules' | 'league'
 type MatchFilter = 'open' | 'all' | 'done'
+
+const TABS: Tab[] = ['matches', 'standings', 'bonus', 'rules', 'league']
+const FILTERS: MatchFilter[] = ['open', 'all', 'done']
+
+function parseTab(value: string | null): Tab | null {
+  return value && TABS.includes(value as Tab) ? (value as Tab) : null
+}
+
+function parseFilter(value: string | null): MatchFilter | null {
+  return value && FILTERS.includes(value as MatchFilter)
+    ? (value as MatchFilter)
+    : null
+}
 
 const FEEDBACK_URL =
   'https://docs.google.com/forms/d/17ucmvY5K2xA2yz9S4nNun8Wb6ulcx_lmWHVjQdlg7GE/viewform'
@@ -35,27 +61,71 @@ const FEEDBACK_URL =
 export function LeaguePage() {
   const { leagueId = '' } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { ready, user } = useAuth()
   const [league, setLeague] = useState<LeagueRow | null>(null)
-  const [tab, setTab] = useState<Tab>('matches')
+  const [tab, setTab] = useState<Tab>(
+    () => parseTab(searchParams.get('tab')) ?? 'matches',
+  )
   const [matches, setMatches] = useState<MatchRow[]>([])
   const [tips, setTips] = useState<TipRow[]>([])
   const [members, setMembers] = useState<MemberRow[]>([])
   const [aiAgents, setAiAgents] = useState<AiAgentRow[]>([])
+  const [bonusQuestions, setBonusQuestions] = useState<BonusQuestionRow[]>([])
+  const [bonusAnswers, setBonusAnswers] = useState<BonusAnswerRow[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [nudgeCopied, setNudgeCopied] = useState(false)
   const [tournamentName, setTournamentName] = useState<string | null>(null)
   const [aiName, setAiName] = useState('Stub AI')
   const [leagueNameEdit, setLeagueNameEdit] = useState('')
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null)
   const [toast, setToast] = useState('')
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('open')
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>(
+    () => parseFilter(searchParams.get('filter')) ?? 'open',
+  )
+  const highlightPending = searchParams.get('pending') === '1'
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
     window.setTimeout(() => setToast((t) => (t === msg ? '' : t)), 2200)
   }, [])
+
+  const setTabAndUrl = useCallback(
+    (next: Tab) => {
+      setTab(next)
+      setSearchParams(
+        (prev) => {
+          const p = new URLSearchParams(prev)
+          p.set('tab', next)
+          if (next !== 'matches') {
+            p.delete('filter')
+            p.delete('pending')
+          }
+          return p
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
+
+  const setFilterAndUrl = useCallback(
+    (next: MatchFilter) => {
+      setMatchFilter(next)
+      setSearchParams(
+        (prev) => {
+          const p = new URLSearchParams(prev)
+          p.set('tab', 'matches')
+          p.set('filter', next)
+          return p
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
 
   const reload = useCallback(async () => {
     if (!user || !leagueId) return
@@ -80,6 +150,8 @@ export function LeaguePage() {
     setTournamentName(play.tournament?.name ?? null)
     setMatches(play.matches)
     setTips(play.tips)
+    setBonusQuestions(play.bonus_questions)
+    setBonusAnswers(play.bonus_answers)
   }, [user, leagueId])
 
   useEffect(() => {
@@ -87,9 +159,30 @@ export function LeaguePage() {
     void reload().catch((err) => setError(formatSupabaseError(err)))
   }, [ready, user, reload])
 
+  useEffect(() => {
+    const t = parseTab(searchParams.get('tab'))
+    if (t) setTab(t)
+    const f = parseFilter(searchParams.get('filter'))
+    if (f) setMatchFilter(f)
+  }, [searchParams])
+
   const standings = useMemo(
-    () => computeStandings(matches, tips, members),
-    [matches, tips, members],
+    () =>
+      computeStandings(matches, tips, members, bonusQuestions, bonusAnswers),
+    [matches, tips, members, bonusQuestions, bonusAnswers],
+  )
+
+  const myPendingMatches = useMemo(
+    () => (user ? pendingOpenMatches(matches, tips, user.id) : []),
+    [matches, tips, user],
+  )
+  const myPendingBonuses = useMemo(
+    () => (user ? pendingOpenBonuses(bonusQuestions, bonusAnswers, user.id) : []),
+    [bonusQuestions, bonusAnswers, user],
+  )
+  const pendingMatchIds = useMemo(
+    () => new Set(myPendingMatches.map((m) => m.id)),
+    [myPendingMatches],
   )
 
   const filteredMatches = useMemo(() => {
@@ -106,12 +199,23 @@ export function LeaguePage() {
     [filteredMatches],
   )
 
+  useEffect(() => {
+    if (!highlightPending || !myPendingMatches[0]) return
+    const id = myPendingMatches[0].id
+    const t = window.setTimeout(() => {
+      document
+        .getElementById(`match-${id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 120)
+    return () => window.clearTimeout(t)
+  }, [highlightPending, myPendingMatches, matchGroups])
+
   async function onSeed() {
     setBusy(true)
     setError('')
     try {
       await seedDemoTournament(leagueId)
-      setTab('matches')
+      setTabAndUrl('matches')
       try {
         await reload()
       } catch (reloadErr) {
@@ -205,6 +309,7 @@ export function LeaguePage() {
               [
                 ['matches', 'Matches'],
                 ['standings', 'Standings'],
+                ['bonus', `Bonus${myPendingBonuses.length ? ` (${myPendingBonuses.length})` : ''}`],
                 ['rules', 'Rules'],
                 ['league', 'League'],
               ] as const
@@ -213,12 +318,64 @@ export function LeaguePage() {
                 key={id}
                 type="button"
                 className={tab === id ? 'tab active' : 'tab'}
-                onClick={() => setTab(id)}
+                onClick={() => setTabAndUrl(id)}
               >
                 {label}
               </button>
             ))}
           </nav>
+
+          {(myPendingMatches.length > 0 || myPendingBonuses.length > 0) && (
+            <div className="panel pending-banner">
+              <h2>Reminders</h2>
+              <p className="muted">
+                {myPendingMatches.length > 0 && (
+                  <>
+                    {myPendingMatches.length} open match
+                    {myPendingMatches.length === 1 ? '' : 'es'} without your tip
+                  </>
+                )}
+                {myPendingMatches.length > 0 && myPendingBonuses.length > 0 && ' · '}
+                {myPendingBonuses.length > 0 && (
+                  <>
+                    {myPendingBonuses.length} open bonus question
+                    {myPendingBonuses.length === 1 ? '' : 's'}
+                  </>
+                )}
+              </p>
+              <div className="row-actions">
+                {myPendingMatches.length > 0 && (
+                  <button
+                    type="button"
+                    className="cta enabled"
+                    onClick={() => {
+                      setMatchFilter('open')
+                      setTab('matches')
+                      setSearchParams(
+                        {
+                          tab: 'matches',
+                          filter: 'open',
+                          pending: '1',
+                        },
+                        { replace: true },
+                      )
+                    }}
+                  >
+                    Tip open matches
+                  </button>
+                )}
+                {myPendingBonuses.length > 0 && (
+                  <button
+                    type="button"
+                    className="cta enabled"
+                    onClick={() => setTabAndUrl('bonus')}
+                  >
+                    Answer bonuses
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {error && <p className="warn-text">{error}</p>}
           {toast && (
@@ -261,7 +418,7 @@ export function LeaguePage() {
                       key={id}
                       type="button"
                       className={matchFilter === id ? 'tab active' : 'tab'}
-                      onClick={() => setMatchFilter(id)}
+                      onClick={() => setFilterAndUrl(id)}
                     >
                       {label}
                     </button>
@@ -277,7 +434,7 @@ export function LeaguePage() {
                       <button
                         type="button"
                         className="linkish"
-                        onClick={() => setMatchFilter('all')}
+                        onClick={() => setFilterAndUrl('all')}
                       >
                         Show all
                       </button>
@@ -297,6 +454,7 @@ export function LeaguePage() {
                         members={members}
                         userId={user.id}
                         isOwner={league.my_role === 'owner'}
+                        pendingTip={pendingMatchIds.has(match.id)}
                         onSaveTip={onSaveTip}
                         onSetResult={onSetResult}
                       />
@@ -321,6 +479,8 @@ export function LeaguePage() {
                       userId: m.user_id,
                       name: m.display_name,
                       points: 0,
+                      matchPoints: 0,
+                      bonusPoints: 0,
                       exact: 0,
                       tipped: 0,
                     }))
@@ -355,6 +515,9 @@ export function LeaguePage() {
                       </button>
                       <span className="muted meta">
                         {row.exact} exact · {row.tipped} tipped
+                        {row.bonusPoints
+                          ? ` · ${row.bonusPoints} bonus`
+                          : ''}
                       </span>
                       {open && (
                         <div className="player-detail">
@@ -392,6 +555,21 @@ export function LeaguePage() {
             </section>
           )}
 
+          {tab === 'bonus' && (
+            <BonusTab
+              leagueId={leagueId}
+              isOwner={league.my_role === 'owner'}
+              userId={user.id}
+              questions={bonusQuestions}
+              answers={bonusAnswers}
+              members={members}
+              onChange={({ questions, answers }) => {
+                setBonusQuestions(questions)
+                setBonusAnswers(answers)
+              }}
+            />
+          )}
+
           {tab === 'rules' && (
             <section className="panel stack">
               <h2>Rules</h2>
@@ -408,12 +586,60 @@ export function LeaguePage() {
                 </li>
                 <li>Tips lock at kickoff</li>
                 <li>Other tips visible after kickoff</li>
+                <li>
+                  Bonus questions: owner sets prompt + points weight; correct
+                  answer awards that weight in full
+                </li>
               </ul>
             </section>
           )}
 
           {tab === 'league' && (
             <section className="stack">
+              <div className="panel stack">
+                <h2>Tip reminder link</h2>
+                <p className="muted">
+                  Share this deep link so players jump straight to open matches
+                  that still need a tip.
+                </p>
+                <button
+                  type="button"
+                  className="cta enabled"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(pendingTipsUrl(leagueId))
+                    setNudgeCopied(true)
+                    window.setTimeout(() => setNudgeCopied(false), 2000)
+                  }}
+                >
+                  {nudgeCopied ? 'Copied!' : 'Copy pending-tips link'}
+                </button>
+                {league.my_role === 'owner' && (
+                  <ul className="league-list">
+                    {matches
+                      .filter(
+                        (m) =>
+                          matchStatusLabel(m.status, m.kickoff_at) !==
+                            'finished' && !isTipLocked(m.kickoff_at),
+                      )
+                      .map((m) => {
+                        const missing = membersMissingTip(m.id, tips, members)
+                        if (missing.length === 0) return null
+                        return (
+                          <li key={m.id}>
+                            <span>
+                              {m.home_team} vs {m.away_team}
+                            </span>
+                            <span className="muted">
+                              missing:{' '}
+                              {missing.map((x) => x.display_name).join(', ')}
+                            </span>
+                          </li>
+                        )
+                      })}
+                  </ul>
+                )}
+              </div>
+
               <div className="panel stack">
                 <h2>Invite</h2>
                 <button

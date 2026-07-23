@@ -108,7 +108,9 @@ a {
   color: var(--muted);
 }
 
-.field input {
+.field input,
+.field select,
+.field textarea {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.7rem 0.85rem;
@@ -116,6 +118,51 @@ a {
   color: var(--text);
   font: inherit;
   font-size: 16px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.pending-banner {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: color-mix(in srgb, rgba(251, 191, 36, 0.08) 70%, var(--bg1));
+}
+
+.match-card.is-pending {
+  border-color: rgba(251, 191, 36, 0.45);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+
+.pending-pill {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--warn);
+}
+
+.bonus-prompt {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.choice-btn {
+  flex: 1 1 auto;
+  min-width: 5.5rem;
+  text-align: center;
 }
 
 .cta {
@@ -303,7 +350,8 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
 }
 
 .match-time .time-short {

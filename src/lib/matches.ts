@@ -1,6 +1,11 @@
+import {
+  normalizeBonusQuestion,
+  type BonusAnswerRow,
+  type BonusQuestionRow,
+} from './bonus'
 import { asError, formatSupabaseError } from './errors'
 import { supabase } from './supabase'
-import { scoreTip } from './scoring'
+import { scoreBonusAnswer, scoreTip } from './scoring'
 
 export { formatSupabaseError }
 
@@ -120,6 +125,8 @@ export type LeaguePlayData = {
   tips: TipRow[]
   members: MemberRow[]
   ai_agents: AiAgentRow[]
+  bonus_questions: BonusQuestionRow[]
+  bonus_answers: BonusAnswerRow[]
 }
 
 function asArray<T>(value: unknown): T[] {
@@ -139,6 +146,10 @@ export async function getLeaguePlayData(leagueId: string): Promise<LeaguePlayDat
     tips: asArray<TipRow>(bundle.tips),
     members: asArray<MemberRow>(bundle.members),
     ai_agents: asArray<AiAgentRow>(bundle.ai_agents),
+    bonus_questions: asArray<Record<string, unknown>>(bundle.bonus_questions).map(
+      normalizeBonusQuestion,
+    ),
+    bonus_answers: asArray<BonusAnswerRow>(bundle.bonus_answers),
   }
 }
 
@@ -233,6 +244,8 @@ export type StandingsRow = {
   userId: string
   name: string
   points: number
+  matchPoints: number
+  bonusPoints: number
   exact: number
   tipped: number
 }
@@ -241,6 +254,8 @@ export function computeStandings(
   matches: MatchRow[],
   tips: TipRow[],
   members: { user_id: string; display_name: string }[],
+  bonusQuestions: BonusQuestionRow[] = [],
+  bonusAnswers: BonusAnswerRow[] = [],
 ): StandingsRow[] {
   const finished = matches.filter(
     (m) =>
@@ -248,10 +263,14 @@ export function computeStandings(
       m.home_goals !== null &&
       m.away_goals !== null,
   )
+  const scoredBonuses = bonusQuestions.filter(
+    (q) => q.status === 'scored' && q.correct_answer,
+  )
 
   return members
     .map((member) => {
-      let points = 0
+      let matchPoints = 0
+      let bonusPoints = 0
       let exact = 0
       let tipped = 0
       for (const match of finished) {
@@ -266,13 +285,25 @@ export function computeStandings(
           match.home_goals!,
           match.away_goals!,
         )
-        points += pts
+        matchPoints += pts
         if (pts === 4) exact++
+      }
+      for (const q of scoredBonuses) {
+        const ans = bonusAnswers.find(
+          (a) => a.question_id === q.id && a.user_id === member.user_id,
+        )
+        bonusPoints += scoreBonusAnswer(
+          ans?.answer_text,
+          q.correct_answer,
+          q.points,
+        )
       }
       return {
         userId: member.user_id,
         name: member.display_name,
-        points,
+        points: matchPoints + bonusPoints,
+        matchPoints,
+        bonusPoints,
         exact,
         tipped,
       }

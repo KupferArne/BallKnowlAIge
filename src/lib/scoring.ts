@@ -50,3 +50,20 @@ export function matchStatusLabel(
   if (status === 'live') return 'live'
   return 'live'
 }
+
+/** Case-insensitive trim; collapses internal whitespace. */
+export function normalizeBonusAnswer(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+/** Award full question points when answers match after normalize. */
+export function scoreBonusAnswer(
+  answer: string | null | undefined,
+  correct: string | null | undefined,
+  points: number,
+): number {
+  if (!answer || !correct || !Number.isFinite(points) || points <= 0) return 0
+  return normalizeBonusAnswer(answer) === normalizeBonusAnswer(correct)
+    ? points
+    : 0
+}

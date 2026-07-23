@@ -12,8 +12,13 @@ Multi-tenant tournament prediction leagues (PWA).
 
 In [Supabase SQL Editor](https://supabase.com/dashboard) → **SQL** → New query, paste and run:
 
-`supabase/migrations/00002_multi_tenant_core.sql`  
-then `supabase/migrations/00003_tips_scoring_demo.sql`
+Run these in order in the SQL Editor (paste each file fully):
+
+1. `supabase/migrations/00002_multi_tenant_core.sql`
+2. `supabase/migrations/00003_tips_scoring_demo.sql`
+3. `supabase/migrations/00004_league_play_bundle.sql`
+4. `supabase/migrations/00005_ai_stub_admin.sql`
+5. `supabase/migrations/00006_bonus_and_pending.sql` (bonus questions + tip reminders)
 
 Also under **Authentication → URL configuration**:
 

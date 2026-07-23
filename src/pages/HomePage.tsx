@@ -1,26 +1,39 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { DbSetupBanner } from '../components/DbSetupBanner'
 import { useAuth } from '../context/AuthContext'
+import { listMyPendingTips, type PendingLeagueTips } from '../lib/bonus'
 import { createLeague, inviteUrl, listMyLeagues } from '../lib/leagues'
+import { pendingBonusPath, pendingTipsPath } from '../lib/pending'
 import type { LeagueRow } from '../lib/types'
 
 export function HomePage() {
   const { ready, user, profile, configured, updateDisplayName, signOut } = useAuth()
   const [leagues, setLeagues] = useState<LeagueRow[]>([])
+  const [pending, setPending] = useState<PendingLeagueTips[]>([])
   const [leagueName, setLeagueName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [needsBonusMigration, setNeedsBonusMigration] = useState(false)
 
   const reload = useCallback(async () => {
     if (!user) {
       setLeagues([])
+      setPending([])
       return
     }
     const rows = await listMyLeagues()
     setLeagues(rows)
+    try {
+      const p = await listMyPendingTips()
+      setPending(p)
+      setNeedsBonusMigration(false)
+    } catch {
+      setPending([])
+      setNeedsBonusMigration(true)
+    }
   }, [user])
 
   useEffect(() => {
@@ -30,6 +43,12 @@ export function HomePage() {
       setError(err instanceof Error ? err.message : 'Failed to load leagues'),
     )
   }, [ready, user, profile?.display_name, reload])
+
+  const actionablePending = useMemo(
+    () =>
+      pending.filter((p) => p.pending_matches > 0 || p.pending_bonuses > 0),
+    [pending],
+  )
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -86,6 +105,23 @@ export function HomePage() {
 
       <DbSetupBanner />
 
+      {needsBonusMigration && user && (
+        <div className="panel warn-panel">
+          <h2>Apply migration 00006</h2>
+          <p className="muted">
+            Bonus questions and tip reminders need{' '}
+            <a
+              href="https://github.com/KupferArne/BallKnowlAIge/blob/main/supabase/migrations/00006_bonus_and_pending.sql"
+              target="_blank"
+              rel="noreferrer"
+            >
+              00006_bonus_and_pending.sql
+            </a>{' '}
+            in the Supabase SQL Editor.
+          </p>
+        </div>
+      )}
+
       {!user ? (
         <div className="panel">
           <p>Sign in to create or join a league.</p>
@@ -120,6 +156,41 @@ export function HomePage() {
               </button>
             </form>
           </section>
+
+          {actionablePending.length > 0 && (
+            <section className="panel pending-banner stack">
+              <h2>Open tips</h2>
+              <p className="muted">Jump back into leagues that still need your picks.</p>
+              <ul className="league-list">
+                {actionablePending.map((p) => (
+                  <li key={p.league_id}>
+                    <div>
+                      <span className="league-title">{p.league_name}</span>
+                      <span className="muted">
+                        {p.pending_matches > 0 &&
+                          `${p.pending_matches} match${p.pending_matches === 1 ? '' : 'es'}`}
+                        {p.pending_matches > 0 && p.pending_bonuses > 0 && ' · '}
+                        {p.pending_bonuses > 0 &&
+                          `${p.pending_bonuses} bonus`}
+                      </span>
+                    </div>
+                    <div className="row-actions">
+                      {p.pending_matches > 0 && (
+                        <Link className="linkish" to={pendingTipsPath(p.league_id)}>
+                          Tip matches
+                        </Link>
+                      )}
+                      {p.pending_bonuses > 0 && (
+                        <Link className="linkish" to={pendingBonusPath(p.league_id)}>
+                          Bonuses
+                        </Link>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="panel">
             <h2>Create league</h2>
