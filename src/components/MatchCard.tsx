@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { MatchRow, TipRow } from '../lib/matches'
 import { teamNameClass } from '../lib/teams'
 import { isTipLocked, matchStatusLabel, scoreTip } from '../lib/scoring'
-import { ScoreStepper } from './ScoreStepper'
+import { ScoreInput } from './ScoreInput'
 
 type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
 
@@ -84,22 +84,6 @@ export function MatchCard({
     }
   }, [home, away, locked, match.id, myTip, onSaveTip])
 
-  async function submitTip(e: FormEvent) {
-    e.preventDefault()
-    if (home === '' || away === '') return
-    if (timer.current) window.clearTimeout(timer.current)
-    setSaveState('saving')
-    setSaveError('')
-    try {
-      await onSaveTip(match.id, Number(home), Number(away))
-      setSaveState('saved')
-      window.setTimeout(() => setSaveState('idle'), 2000)
-    } catch (err) {
-      setSaveState('error')
-      setSaveError(err instanceof Error ? err.message : 'Save failed')
-    }
-  }
-
   async function submitResult(e: FormEvent) {
     e.preventDefault()
     setResultBusy(true)
@@ -129,14 +113,14 @@ export function MatchCard({
 
   const saveLabel =
     saveState === 'pending'
-      ? 'Saving soon…'
+      ? 'Saving…'
       : saveState === 'saving'
         ? 'Saving…'
         : saveState === 'saved'
           ? 'Saved ✓'
           : saveState === 'error'
             ? 'Error'
-            : 'Auto-saves'
+            : ''
 
   const myPts =
     myTip && match.home_goals !== null && match.away_goals !== null
@@ -162,7 +146,7 @@ export function MatchCard({
         <div className={teamNameClass(match.home_team)} title={match.home_team}>
           {match.home_team}
         </div>
-        <div className="match-center" aria-hidden={false}>
+        <div className="match-center">
           {locked ? (
             <div className="result-score">
               <span>{match.home_goals ?? '–'}</span>
@@ -170,44 +154,35 @@ export function MatchCard({
               <span>{match.away_goals ?? '–'}</span>
             </div>
           ) : (
-            <form className="tip-form" onSubmit={submitTip}>
-              <div className="tip-steppers">
-                <ScoreStepper
-                  value={home}
-                  onChange={setHome}
-                  ariaLabel={`${match.home_team} tip`}
-                  disabled={saveState === 'saving'}
-                />
-                <span className="score-colon">:</span>
-                <ScoreStepper
-                  value={away}
-                  onChange={setAway}
-                  ariaLabel={`${match.away_team} tip`}
-                  disabled={saveState === 'saving'}
-                />
-              </div>
-              <div className="tip-actions">
-                <span
-                  className={
-                    saveState === 'saved'
-                      ? 'save-status ok-text'
-                      : saveState === 'error'
-                        ? 'save-status warn-text'
-                        : 'save-status muted'
-                  }
-                  role="status"
-                >
-                  {saveLabel}
-                </span>
-                <button
-                  className="cta enabled tip-save-btn"
-                  type="submit"
-                  disabled={saveState === 'saving' || home === '' || away === ''}
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+            <div className="tip-scores">
+              <ScoreInput
+                value={home}
+                onChange={setHome}
+                ariaLabel={`${match.home_team} tip`}
+                disabled={saveState === 'saving'}
+              />
+              <span className="score-colon">:</span>
+              <ScoreInput
+                value={away}
+                onChange={setAway}
+                ariaLabel={`${match.away_team} tip`}
+                disabled={saveState === 'saving'}
+              />
+            </div>
+          )}
+          {!locked && saveLabel && (
+            <span
+              className={
+                saveState === 'saved'
+                  ? 'save-status ok-text'
+                  : saveState === 'error'
+                    ? 'save-status warn-text'
+                    : 'save-status muted'
+              }
+              role="status"
+            >
+              {saveLabel}
+            </span>
           )}
         </div>
         <div className={teamNameClass(match.away_team)} title={match.away_team}>
@@ -274,14 +249,14 @@ export function MatchCard({
       {isOwner && status !== 'finished' && locked && (
         <form className="tip-row result-row" onSubmit={submitResult}>
           <span className="muted">Set result</span>
-          <ScoreStepper
+          <ScoreInput
             value={resHome}
             onChange={setResHome}
             ariaLabel="Home result"
             disabled={resultBusy}
           />
           <span className="score-colon">:</span>
-          <ScoreStepper
+          <ScoreInput
             value={resAway}
             onChange={setResAway}
             ariaLabel="Away result"

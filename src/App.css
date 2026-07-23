@@ -39,7 +39,7 @@ a {
 }
 
 .app {
-  max-width: 40rem;
+  width: min(100%, 42rem);
   margin: 0 auto;
   padding: 2.5rem 1.25rem 3rem;
   padding-left: max(1.25rem, env(safe-area-inset-left));
@@ -340,8 +340,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  min-width: 7.5rem;
+  gap: 0.2rem;
+  min-width: 5.5rem;
 }
 
 .result-score {
@@ -359,69 +359,19 @@ a {
   font-weight: 700;
 }
 
-.tip-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-}
-
-.tip-steppers {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.tip-actions {
+.tip-scores {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.tip-save-btn {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.85rem;
-  min-height: 2rem;
-}
-
-.score-stepper {
-  display: inline-flex;
-  align-items: stretch;
-  border: 1px solid var(--border);
-  border-radius: 0.55rem;
-  overflow: hidden;
-  background: #0a101c;
-}
-
-.stepper-btn {
-  width: 2.4rem;
-  min-height: 2.75rem;
-  border: 0;
-  background: rgba(20, 184, 166, 0.12);
-  color: var(--teal-bright);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  touch-action: manipulation;
-  user-select: none;
-}
-
-.stepper-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  gap: 0.3rem;
 }
 
 .score-input {
-  width: 2.6rem;
+  width: 2.75rem;
   min-height: 2.75rem;
-  border: 0;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: #0a101c;
   color: var(--text);
   font: inherit;
   /* 16px prevents iOS zoom on focus */
@@ -429,6 +379,19 @@ a {
   font-weight: 700;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.score-input:focus {
+  outline: 2px solid rgba(20, 184, 166, 0.45);
+  outline-offset: 1px;
+  border-color: var(--teal-bright);
 }
 
 .my-tip-line {
@@ -601,8 +564,9 @@ a {
 }
 
 .save-status {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   white-space: nowrap;
+  min-height: 1.1em;
 }
 
 .toast {
@@ -651,82 +615,60 @@ a {
   touch-action: manipulation;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .app {
-    padding-top: 1.25rem;
-    padding-left: max(0.85rem, env(safe-area-inset-left));
-    padding-right: max(0.85rem, env(safe-area-inset-right));
+    padding-top: 1.15rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
   .brand {
-    font-size: clamp(1.65rem, 9vw, 2.25rem);
+    font-size: clamp(1.55rem, 8vw, 2.1rem);
   }
 
   .panel {
-    padding: 0.9rem;
-    gap: 0.7rem;
+    padding: 0.85rem;
+    gap: 0.65rem;
     border-radius: 0.65rem;
   }
 
   .stack-lg {
-    gap: 0.95rem;
+    gap: 0.9rem;
   }
 
   .match-card {
-    padding: 0.75rem 0.8rem;
-    gap: 0.55rem;
+    padding: 0.7rem 0.75rem;
+    gap: 0.5rem;
   }
 
-  /* Home → tip → away stack: clearer for long KO placeholders */
+  /* Keep classic Home | score | Away on phones */
   .match-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.45rem;
-  }
-
-  .match-grid .team-name:last-child {
-    text-align: left;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 0.4rem 0.45rem;
+    align-items: center;
   }
 
   .match-center {
-    width: 100%;
-    min-width: 0;
+    min-width: 5rem;
   }
 
   .team-name {
-    font-size: 1rem;
-    padding: 0.15rem 0;
+    font-size: 0.95rem;
   }
 
   .team-name.is-placeholder {
-    font-size: 0.88rem;
-    line-height: 1.3;
-    padding: 0.35rem 0.5rem;
-    border-radius: 0.4rem;
-    background: rgba(148, 163, 184, 0.08);
-    border: 1px dashed rgba(148, 163, 184, 0.28);
-  }
-
-  .tip-steppers {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .score-stepper {
-    flex: 1 1 auto;
-    max-width: 9.5rem;
-  }
-
-  .stepper-btn {
-    width: 2.75rem;
-    min-height: 3rem;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    font-weight: 600;
   }
 
   .score-input {
-    flex: 1;
-    min-height: 3rem;
-    width: 3rem;
+    width: 2.55rem;
+    min-height: 2.6rem;
+  }
+
+  .result-score {
+    font-size: 1.35rem;
   }
 
   .match-time .time-full {
@@ -746,33 +688,24 @@ a {
   }
 
   .standing-toggle {
-    min-height: 2.75rem;
+    min-height: 2.6rem;
     align-items: center;
   }
 
   .league-list li {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 
-  .tip-list li {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .cta {
-    min-height: 2.75rem;
+  .panel > .cta.enabled,
+  .panel form > .cta.enabled,
+  .panel > .danger {
     width: 100%;
-  }
-
-  .tip-save-btn {
-    width: auto;
-    min-height: 2rem;
+    min-height: 2.75rem;
   }
 
   .result-row .cta {
     width: auto;
+    min-height: 2.5rem;
   }
 
   .tabs-sticky {
@@ -781,6 +714,27 @@ a {
 
   .matchday-sticky {
     top: calc(3rem + env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (max-width: 360px) {
+  .team-name {
+    font-size: 0.88rem;
+  }
+
+  .score-input {
+    width: 2.35rem;
+    min-height: 2.45rem;
+  }
+
+  .match-center {
+    min-width: 4.5rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .app {
+    width: min(100%, 48rem);
   }
 }
 
