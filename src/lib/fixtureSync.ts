@@ -1,5 +1,6 @@
 import { asError } from './errors'
 import { fetchOpenfootballWorldCup, type SyncedFixture } from './openfootball'
+import { fetchOpenLigaDb } from './openligadb'
 import {
   footballDataSeason,
   preferredSyncSource,
@@ -48,8 +49,29 @@ export async function syncViaOpenfootball(input: {
   return applyFixtureSync(input.leagueId, fixtures, `openfootball:${source.code}`)
 }
 
+/** Client-safe sync for German leagues via OpenLigaDB (no key, no Edge Function). */
+export async function syncViaOpenLigaDb(input: {
+  leagueId: string
+  competitionId: string
+  season: string | null
+}): Promise<ApplySyncResult> {
+  const source = syncSourcesFor(input.competitionId).find(
+    (s) => s.provider === 'openligadb',
+  )
+  if (!source) {
+    throw new Error('No OpenLigaDB source for this competition')
+  }
+  const year =
+    footballDataSeason(input.season) ??
+    // Default to current European season start year
+    (new Date().getMonth() >= 6 ? new Date().getFullYear() : new Date().getFullYear() - 1)
+
+  const fixtures = await fetchOpenLigaDb(source.code, year)
+  return applyFixtureSync(input.leagueId, fixtures, `openligadb:${source.code}:${year}`)
+}
+
 /**
- * Prefer openfootball in-browser; otherwise call Edge Function for football-data.org.
+ * Prefer keyless client sync; football-data.org only via Edge Function (optional).
  */
 export async function syncTournamentFixtures(input: {
   leagueId: string
@@ -73,6 +95,15 @@ export async function syncTournamentFixtures(input: {
     return { ...result, via: 'openfootball' }
   }
 
+  if (preferred.provider === 'openligadb') {
+    const result = await syncViaOpenLigaDb({
+      leagueId: input.leagueId,
+      competitionId: input.competitionId,
+      season: input.season,
+    })
+    return { ...result, via: 'openligadb' }
+  }
+
   const { data, error } = await supabase.functions.invoke('sync-fixtures', {
     body: {
       leagueId: input.leagueId,
@@ -80,7 +111,13 @@ export async function syncTournamentFixtures(input: {
       season: footballDataSeason(input.season),
     },
   })
-  if (error) throw asError(error)
+  if (error) {
+    const msg = error.message || 'Edge Function request failed'
+    throw new Error(
+      `${msg}. For Bundesliga use OpenLigaDB (set season like 2025/26). ` +
+        'football-data.org needs a deployed Edge Function + FOOTBALL_DATA_API_TOKEN — see docs/SECRETS.md.',
+    )
+  }
   if (data?.error) throw new Error(String(data.error))
   return {
     upserted: Number(data?.upserted ?? 0),

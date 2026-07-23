@@ -239,8 +239,9 @@ Pull tournament schedules + results into `matches` using **free** providers. API
 
 | Provider | Cost | Use |
 |---|---|---|
-| **openfootball** (GitHub JSON) | Free, no key | FIFA World Cup (Men) — client-side fetch + `apply_fixture_sync` |
-| **football-data.org** Free | Free token, delayed scores, ~12 comps | Bundesliga, PL, UCL, EM, … via Edge Function `sync-fixtures` |
+| **openfootball** (GitHub JSON) | Free, no key | FIFA World Cup (Men) — client-side |
+| **OpenLigaDB** | Free, no key | 1./2./3. Liga (DE) — client-side |
+| **football-data.org** Free | Free token, delayed scores | PL, UCL, EM, … via Edge Function `sync-fixtures` (optional) |
 
 ### Product requirements
 

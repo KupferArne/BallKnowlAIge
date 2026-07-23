@@ -1,8 +1,8 @@
-export type SyncProvider = 'openfootball' | 'football-data'
+export type SyncProvider = 'openfootball' | 'openligadb' | 'football-data'
 
 export type SyncSource = {
   provider: SyncProvider
-  /** football-data.org competition code, or openfootball edition key */
+  /** Provider competition code / shortcut */
   code: string
   /** Human label for UI */
   label: string
@@ -33,10 +33,34 @@ export const COMPETITION_SYNC_SOURCES: Record<string, SyncSource[]> = {
     { provider: 'football-data', code: 'EC', label: 'football-data.org European Championship' },
   ],
   'bundesliga-men': [
+    {
+      provider: 'openligadb',
+      code: 'bl1',
+      label: 'OpenLigaDB 1. Bundesliga (no API key)',
+    },
     { provider: 'football-data', code: 'BL1', label: 'football-data.org Bundesliga' },
   ],
   'bundesliga-2': [
+    {
+      provider: 'openligadb',
+      code: 'bl2',
+      label: 'OpenLigaDB 2. Bundesliga (no API key)',
+    },
     { provider: 'football-data', code: 'BL2', label: 'football-data.org 2. Bundesliga' },
+  ],
+  '3-liga': [
+    {
+      provider: 'openligadb',
+      code: 'bl3',
+      label: 'OpenLigaDB 3. Liga (no API key)',
+    },
+  ],
+  'frauen-bundesliga': [
+    {
+      provider: 'openligadb',
+      code: 'fbl1',
+      label: 'OpenLigaDB Frauen-Bundesliga (no API key)',
+    },
   ],
   ucl: [
     { provider: 'football-data', code: 'CL', label: 'football-data.org Champions League' },
@@ -76,13 +100,14 @@ export function canSyncCompetition(competitionId: string | null | undefined): bo
   return syncSourcesFor(competitionId).length > 0
 }
 
-/** Prefer client-safe openfootball when present; else football-data via Edge Function. */
+/** Prefer client-safe sources (no Edge Function / API key). */
 export function preferredSyncSource(
   competitionId: string | null | undefined,
 ): SyncSource | null {
   const sources = syncSourcesFor(competitionId)
   return (
     sources.find((s) => s.provider === 'openfootball') ??
+    sources.find((s) => s.provider === 'openligadb') ??
     sources.find((s) => s.provider === 'football-data') ??
     null
   )

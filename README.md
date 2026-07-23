@@ -26,7 +26,8 @@ Run these in order in the SQL Editor (paste each file fully):
 ### Fixture sync (optional)
 
 - **World Cup (Men):** Owner → Matches → **Sync fixtures now** (openfootball, no API key).
-- **Bundesliga / PL / UCL / …:** Deploy Edge Function `sync-fixtures` and set `FOOTBALL_DATA_API_TOKEN` — see [docs/SECRETS.md](./docs/SECRETS.md).
+- **Bundesliga / 2. Liga / 3. Liga:** same button via **OpenLigaDB** (no API key; season e.g. `2025/26`).
+- **PL / UCL / … (optional):** Deploy Edge Function `sync-fixtures` + `FOOTBALL_DATA_API_TOKEN` — see [docs/SECRETS.md](./docs/SECRETS.md).
 
 Also under **Authentication → URL configuration**:
 
