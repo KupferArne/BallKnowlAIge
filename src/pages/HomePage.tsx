@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { DbSetupBanner } from '../components/DbSetupBanner'
 import { useAuth } from '../context/AuthContext'
 import { createLeague, inviteUrl, listMyLeagues } from '../lib/leagues'
 import type { LeagueRow } from '../lib/types'
@@ -82,6 +83,8 @@ export function HomePage() {
       {!configured && (
         <p className="warn-text">Missing Supabase env — see README.</p>
       )}
+
+      <DbSetupBanner />
 
       {!user ? (
         <div className="panel">
