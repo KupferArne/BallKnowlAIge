@@ -148,11 +148,42 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ---
 
+## Epic 8 — User feedback (WC Tippspiel survey)
+
+Source: post-tournament survey (“What should we improve” / “Feature ideas”).
+
+### Must / should (product)
+
+| # | Request | Notes | Status |
+|---|---|---|---|
+| 8.1 | **Auto-save tips** or “Save all” + **visual confirmation** | Per-match save exists; add debounce auto-save + toast/checkmark | [ ] |
+| 8.2 | **Leaderboard: highlight own row** | Standings tab — stronger “you” styling | [ ] |
+| 8.3 | **Bonus / special questions scoring** | Cap or rebalance vs match tips (champ + top scorer felt ~20 pts / too heavy) | [ ] (not in app yet — design when bonuses land) |
+| 8.4 | **Knockout opponent updates** | Avoid manual placeholder pain; auto-fill from previous results / sync | [ ] (partially future fixtures sync) |
+| 8.5 | **Mobile UX polish** | Densify match cards, safer tip inputs, knockout readability | [ ] |
+| 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | [ ] |
+
+### Nice to have
+
+| # | Request | Notes | Status |
+|---|---|---|---|
+| 8.7 | **Dark mode** | App is already dark-ish; add explicit theme toggle / system preference | [ ] |
+| 8.8 | **Native / store app** | Out of $0 MVP — PWA “Add to Home Screen” covers hosted app for now | deferred |
+| 8.9 | **Better AI on tournament extras** | Real models + calibration; stub is not for champ/scorer quality | deferred (OpenRouter epic) |
+
+### Explicitly not from this feedback
+
+- Chat notifications (already out of scope)
+
+**Suggested next slice:** 8.1 + 8.2 (quick UX wins), then 8.5, then 8.6 paywall flag.
+
+---
+
 ## Out of scope for $0 MVP
 
-- App Store / Play Store
-- Stripe / real prize-pool payouts
-- **Chat notifications** (Google Chat, Slack, Teams, etc.) — not needed in this product
+- App Store / Play Store (PWA instead; see 8.8)
+- Stripe checkout (8.6 can start as **manual “paid” flag** without Stripe)
+- **Chat notifications** (Google Chat, Slack, Teams, etc.)
 - Guaranteed live minute-by-minute scores
 - Paid sports data APIs
 
@@ -160,20 +191,21 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 
 ## Suggested sprint order
 
-1. Epic S + 0 — hygiene & scaffold  
-2. Epic 1 + 2 — leagues, auth, invites  
-3. Epic 3 + 4 — fixtures, tips, scoring  
-4. Epic 5 + 7 — polish & admin; Epic 6 stub if time  
+1. Epic S + 0 — hygiene & scaffold ✅  
+2. Epic 1 + 2 — leagues, auth, invites ✅  
+3. Epic 3 + 4 — fixtures, tips, scoring ✅  
+4. Epic 5–7 — PWA polish, AI stub, admin ✅  
+5. **Epic 8** — survey UX (auto-save, standings highlight, mobile, paywall flag)
 
 ---
 
-## Decisions (fill in)
+## Decisions
 
 | Topic | Decision |
 |---|---|
 | UI stack | React + Vite + TS |
-| Auth | Magic Link (Epic 2) |
-| First tournament data | Demo JSON first (Epic 3) |
-| AI in MVP | Stub (Epic 6) |
-| Supabase project URL | _(public)_ |
-| Pages URL | _(after first deploy)_ |
+| Auth | Magic Link + password |
+| First tournament data | Demo Cup seed |
+| AI in MVP | Stub heuristics (Epic 6) |
+| Supabase | `mahevkixlrxdoxtbopoj` |
+| Pages URL | https://kupferarne.github.io/BallKnowlAIge/ |
