@@ -88,13 +88,42 @@ export async function listLeagueMembers(
   }))
 }
 
+export function formatSupabaseError(err: unknown): string {
+  if (!err) return 'Unknown error'
+  if (typeof err === 'string') return err
+  const e = err as { message?: string; details?: string; hint?: string; code?: string }
+  return [e.message, e.details, e.hint, e.code].filter(Boolean).join(' — ')
+}
+
 export async function seedDemoTournament(leagueId: string): Promise<TournamentRow> {
   const client = requireClient()
   const { data, error } = await client.rpc('seed_demo_tournament', {
     p_league_id: leagueId,
   })
-  if (error) throw error
+  if (error) throw new Error(formatSupabaseError(error))
   return data as TournamentRow
+}
+
+export type LeaguePlayData = {
+  tournament: TournamentRow | null
+  matches: MatchRow[]
+  tips: TipRow[]
+  members: { user_id: string; role: string; display_name: string }[]
+}
+
+export async function getLeaguePlayData(leagueId: string): Promise<LeaguePlayData> {
+  const client = requireClient()
+  const { data, error } = await client.rpc('get_league_play_data', {
+    p_league_id: leagueId,
+  })
+  if (error) throw new Error(formatSupabaseError(error))
+  const bundle = (data ?? {}) as Partial<LeaguePlayData>
+  return {
+    tournament: bundle.tournament ?? null,
+    matches: bundle.matches ?? [],
+    tips: bundle.tips ?? [],
+    members: bundle.members ?? [],
+  }
 }
 
 export async function upsertTip(
@@ -108,7 +137,7 @@ export async function upsertTip(
     p_home_goals: homeGoals,
     p_away_goals: awayGoals,
   })
-  if (error) throw error
+  if (error) throw new Error(formatSupabaseError(error))
   return data as TipRow
 }
 
@@ -123,7 +152,7 @@ export async function setMatchResult(
     p_home_goals: homeGoals,
     p_away_goals: awayGoals,
   })
-  if (error) throw error
+  if (error) throw new Error(formatSupabaseError(error))
   return data as MatchRow
 }
 

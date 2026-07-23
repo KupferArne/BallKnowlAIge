@@ -4,10 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import {
   computeStandings,
-  listLeagueMembers,
-  listMatches,
-  listTipsForMatches,
-  listTournaments,
+  formatSupabaseError,
+  getLeaguePlayData,
   seedDemoTournament,
   setMatchResult,
   upsertTip,
@@ -44,24 +42,11 @@ export function LeaguePage() {
       return
     }
 
-    const [memberRows, tournaments] = await Promise.all([
-      listLeagueMembers(leagueId),
-      listTournaments(leagueId),
-    ])
-    setMembers(memberRows)
-
-    const demo = tournaments.find((t) => t.name === 'Demo Cup') ?? tournaments[0]
-    if (!demo) {
-      setMatches([])
-      setTips([])
-      setTournamentName(null)
-      return
-    }
-    setTournamentName(demo.name)
-    const matchRows = await listMatches(demo.id)
-    setMatches(matchRows)
-    const tipRows = await listTipsForMatches(matchRows.map((m) => m.id))
-    setTips(tipRows)
+    const play = await getLeaguePlayData(leagueId)
+    setMembers(play.members)
+    setTournamentName(play.tournament?.name ?? null)
+    setMatches(play.matches)
+    setTips(play.tips)
   }, [user, leagueId])
 
   useEffect(() => {
@@ -81,10 +66,17 @@ export function LeaguePage() {
     setError('')
     try {
       await seedDemoTournament(leagueId)
-      await reload()
       setTab('matches')
+      try {
+        await reload()
+      } catch (reloadErr) {
+        setError(
+          'Demo Cup was seeded, but reload failed: ' +
+            formatSupabaseError(reloadErr),
+        )
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Seed failed')
+      setError(formatSupabaseError(err) || 'Seed failed')
     } finally {
       setBusy(false)
     }
