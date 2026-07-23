@@ -179,7 +179,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 - Chat notifications (already out of scope)
 
-**Suggested next slice:** **8.6** paywall/paid flag, then **8.4** knockout updates / real fixture sync per competition.
+**Suggested next slice:** exercise **Epic 10** sync on a real league, then **8.6** paywall flag, then **8.4** KO bracket fill from sync.
 
 ---
 
@@ -231,13 +231,40 @@ Catalog file: `src/data/competitions.ts` · RPC: `create_tournament`
 
 ---
 
+## Epic 10 — Fixture sync (free sources)
+
+Pull tournament schedules + results into `matches` using **free** providers. API keys never in the PWA bundle.
+
+### Sources
+
+| Provider | Cost | Use |
+|---|---|---|
+| **openfootball** (GitHub JSON) | Free, no key | FIFA World Cup (Men) — client-side fetch + `apply_fixture_sync` |
+| **football-data.org** Free | Free token, delayed scores, ~12 comps | Bundesliga, PL, UCL, EM, … via Edge Function `sync-fixtures` |
+
+### Product requirements
+
+- [x] Map `competition_id` → sync source(s) (`src/lib/syncSources.ts`)
+- [x] Persist `matches.external_id`, `tournaments.last_synced_at` / `sync_source`
+- [x] Owner **Sync fixtures now** button (replaces demo rows once real fixtures land)
+- [x] openfootball path works without Edge Function deploy
+- [x] football-data.org path via `supabase/functions/sync-fixtures` + `FOOTBALL_DATA_API_TOKEN`
+- [ ] Optional cron (Cloudflare Worker / scheduled Edge Function) — later
+- [ ] Live minute-by-minute — out of free scope (delayed FT is enough for tip scoring)
+
+**Done when:** owner of a WC-2026 league can sync the real schedule; a Bundesliga league can sync after Edge Function + free football-data token are configured.
+
+Apply: `00008_fixture_sync.sql`
+
+---
+
 ## Out of scope for $0 MVP
 
 - App Store / Play Store (PWA instead; see 8.8)
 - Stripe checkout (8.6 can start as **manual “paid” flag** without Stripe)
 - **Chat notifications** (Google Chat, Slack, Teams, etc.)
 - Guaranteed live minute-by-minute scores
-- Paid sports data APIs
+- Paid sports data APIs (beyond free tiers above)
 
 ---
 
@@ -247,9 +274,10 @@ Catalog file: `src/data/competitions.ts` · RPC: `create_tournament`
 2. Epic 1 + 2 — leagues, auth, invites ✅  
 3. Epic 3 + 4 — fixtures, tips, scoring ✅  
 4. Epic 5–7 — PWA polish, AI stub, admin ✅  
-5. **Epic 8** — survey UX (auto-save, standings highlight, mobile, paywall flag) — mostly ✅  
-6. **Epic 9** — competition catalog on tournament create ✅  
-7. Epic 8 leftovers — 8.6 paid flag, 8.4 knockout sync / real fixtures
+5. **Epic 8** — survey UX — mostly ✅  
+6. **Epic 9** — competition catalog ✅  
+7. **Epic 10** — fixture sync (openfootball + football-data.org) ✅ scaffolding  
+8. Epic 8 leftovers — 8.6 paid flag, 8.4 KO from sync
 
 ---
 
@@ -261,6 +289,7 @@ Catalog file: `src/data/competitions.ts` · RPC: `create_tournament`
 | Auth | Magic Link + password |
 | First tournament data | Demo Cup seed |
 | Competition identity | Curated catalog (`competitions.ts`) + `tournaments.competition_id` (Epic 9) |
+| Fixture sync | openfootball (WC, no key) + football-data.org free (Edge Function + token) |
 | AI in MVP | Stub heuristics (Epic 6) |
 | Supabase | `mahevkixlrxdoxtbopoj` |
 | Pages URL | https://kupferarne.github.io/BallKnowlAIge/ |

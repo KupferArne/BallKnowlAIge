@@ -20,7 +20,15 @@ Hard rules for BallKnowlAIge (see also Epic S in `BACKLOG.md`).
 |---|---|
 | Supabase service role | Supabase dashboard / local CLI only — never in git |
 | OpenRouter (later) | Supabase Edge Function secrets |
+| `FOOTBALL_DATA_API_TOKEN` | Supabase Edge Function secret `sync-fixtures` only — never in Vite/`VITE_*` |
 | Local overrides | `.env` / `.env.local` (gitignored) |
+
+### Fixture sync (Epic 10)
+
+1. Register a free token at [football-data.org](https://www.football-data.org/client/register)  
+2. Deploy: `npx supabase functions deploy sync-fixtures --project-ref mahevkixlrxdoxtbopoj`  
+3. Set secret: `npx supabase secrets set FOOTBALL_DATA_API_TOKEN=… --project-ref mahevkixlrxdoxtbopoj`  
+4. World Cup sync via **openfootball** needs **no** token (runs in the browser as the owner)
 
 ## Rotate on leak
 

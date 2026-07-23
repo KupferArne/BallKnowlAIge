@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext'
 import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
+import { syncTournamentFixtures } from '../lib/fixtureSync'
 import {
   membersMissingTip,
   pendingOpenBonuses,
@@ -19,6 +20,7 @@ import {
   pendingTipsUrl,
 } from '../lib/pending'
 import { isTipLocked, matchStatusLabel } from '../lib/scoring'
+import { canSyncCompetition, syncSourcesFor } from '../lib/syncSources'
 import {
   addStubAiAgent,
   computeStandings,
@@ -217,6 +219,28 @@ export function LeaguePage() {
     }, 120)
     return () => window.clearTimeout(t)
   }, [highlightPending, myPendingMatches, matchGroups])
+
+  async function onSyncFixtures() {
+    if (!tournament?.competition_id) {
+      setError('Pick a competition before syncing.')
+      return
+    }
+    setBusy(true)
+    setError('')
+    try {
+      const result = await syncTournamentFixtures({
+        leagueId,
+        competitionId: tournament.competition_id,
+        season: tournament.season ?? null,
+      })
+      await reload()
+      showToast(`Synced ${result.upserted} matches (${result.via})`)
+    } catch (err) {
+      setError(formatSupabaseError(err) || 'Sync failed')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function onCreateTournament(input: {
     competitionId: string
@@ -432,6 +456,39 @@ export function LeaguePage() {
                   Waiting for the owner to create a tournament.
                 </p>
               )}
+              {tournamentName &&
+                league.my_role === 'owner' &&
+                canSyncCompetition(tournament?.competition_id) && (
+                  <div className="panel stack sync-panel">
+                    <h2>Fixture sync</h2>
+                    <p className="muted">
+                      Pull schedule + results from free sources (
+                      {syncSourcesFor(tournament?.competition_id)
+                        .map((s) => s.label)
+                        .join(' · ')}
+                      ). Scores may be delayed — not a live ticker. Replaces
+                      demo sample matches.
+                    </p>
+                    {tournament?.last_synced_at && (
+                      <p className="muted">
+                        Last sync:{' '}
+                        {new Date(tournament.last_synced_at).toLocaleString()}
+                        {tournament.sync_source
+                          ? ` · ${tournament.sync_source}`
+                          : ''}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      className="cta enabled"
+                      disabled={busy}
+                      onClick={() => void onSyncFixtures()}
+                    >
+                      {busy ? 'Syncing…' : 'Sync fixtures now'}
+                    </button>
+                  </div>
+                )}
+
               {tournamentName && (
                 <div className="tabs filter-tabs" role="group" aria-label="Match filter">
                   {(

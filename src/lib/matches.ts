@@ -23,6 +23,7 @@ export type MatchRow = {
   home_goals: number | null
   away_goals: number | null
   status: string
+  external_id?: string | null
 }
 
 export type TipRow = {
@@ -40,6 +41,8 @@ export type TournamentRow = {
   competition_id?: string | null
   competition_name?: string | null
   season?: string | null
+  last_synced_at?: string | null
+  sync_source?: string | null
 }
 
 export async function listTournaments(leagueId: string): Promise<TournamentRow[]> {

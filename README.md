@@ -20,6 +20,12 @@ Run these in order in the SQL Editor (paste each file fully):
 4. `supabase/migrations/00005_ai_stub_admin.sql`
 5. `supabase/migrations/00006_bonus_and_pending.sql` (bonus questions + tip reminders)
 6. `supabase/migrations/00007_competition_catalog.sql` (competition picker on tournament create)
+7. `supabase/migrations/00008_fixture_sync.sql` (fixture sync upsert + external ids)
+
+### Fixture sync (optional)
+
+- **World Cup (Men):** Owner → Matches → **Sync fixtures now** (openfootball, no API key).
+- **Bundesliga / PL / UCL / …:** Deploy Edge Function `sync-fixtures` and set `FOOTBALL_DATA_API_TOKEN` — see [docs/SECRETS.md](./docs/SECRETS.md).
 
 Also under **Authentication → URL configuration**:
 

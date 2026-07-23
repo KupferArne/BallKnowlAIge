@@ -40,7 +40,7 @@ export function HomePage() {
     if (supabase) {
       const { error } = await supabase
         .from('tournaments')
-        .select('competition_id')
+        .select('competition_id, last_synced_at')
         .limit(1)
       if (
         error &&
@@ -49,6 +49,12 @@ export function HomePage() {
           error.code === 'PGRST204')
       ) {
         missing.push('00007_competition_catalog.sql')
+      } else if (
+        error &&
+        (error.message.includes('last_synced_at') ||
+          error.code === 'PGRST204')
+      ) {
+        missing.push('00008_fixture_sync.sql')
       }
     }
     setMissingMigrations(missing)
