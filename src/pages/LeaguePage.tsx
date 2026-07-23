@@ -34,15 +34,21 @@ export function LeaguePage() {
 
   const reload = useCallback(async () => {
     if (!user || !leagueId) return
-    const leagues = await listMyLeagues()
+    setError('')
+
+    const [leagues, play] = await Promise.all([
+      listMyLeagues(),
+      getLeaguePlayData(leagueId),
+    ])
+
     const found = leagues.find((r) => r.id === leagueId) ?? null
-    setLeague(found)
     if (!found) {
-      setError('League not found or you are not a member.')
-      return
+      throw new Error(
+        `League not found or you are not a member (id=${leagueId}).`,
+      )
     }
 
-    const play = await getLeaguePlayData(leagueId)
+    setLeague(found)
     setMembers(play.members)
     setTournamentName(play.tournament?.name ?? null)
     setMatches(play.matches)
@@ -51,9 +57,7 @@ export function LeaguePage() {
 
   useEffect(() => {
     if (!ready || !user) return
-    void reload().catch((err) =>
-      setError(err instanceof Error ? err.message : 'Failed to load league'),
-    )
+    void reload().catch((err) => setError(formatSupabaseError(err)))
   }, [ready, user, reload])
 
   const standings = useMemo(
