@@ -378,16 +378,10 @@ export function LeaguePage() {
 
   return (
     <div className="stack-lg">
-      <p>
-        <Link to="/">← All leagues</Link>
-      </p>
-
       {league ? (
         <>
           <header className="hero">
-            <p className="brand" style={{ fontSize: '1.75rem' }}>
-              {league.name}
-            </p>
+            <p className="brand league-title-brand">{league.name}</p>
             <p className="muted">
               Role <span className="pill">{league.my_role}</span>
               {competitionLabel ? (

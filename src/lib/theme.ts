@@ -41,6 +41,13 @@ export function setThemePreference(pref: ThemePreference) {
   applyTheme(pref)
 }
 
+/** Flip light ↔ dark (explicit preference; leaves “system” behind). */
+export function toggleLightDark(): 'light' | 'dark' {
+  const next = resolveTheme(getThemePreference()) === 'dark' ? 'light' : 'dark'
+  setThemePreference(next)
+  return next
+}
+
 /** Call once at boot; also listens for OS preference when mode is system. */
 export function initTheme() {
   applyTheme()

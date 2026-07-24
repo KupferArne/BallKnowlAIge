@@ -6,15 +6,10 @@ import { listMyPendingTips, type PendingLeagueTips } from '../lib/bonus'
 import { createLeague, inviteUrl, listMyLeagues } from '../lib/leagues'
 import { pendingBonusPath, pendingTipsPath } from '../lib/pending'
 import { supabase } from '../lib/supabase'
-import {
-  getThemePreference,
-  setThemePreference,
-  type ThemePreference,
-} from '../lib/theme'
 import type { LeagueRow } from '../lib/types'
 
 export function HomePage() {
-  const { ready, user, profile, configured, updateDisplayName, signOut } = useAuth()
+  const { ready, user, profile, configured, updateDisplayName } = useAuth()
   const [leagues, setLeagues] = useState<LeagueRow[]>([])
   const [pending, setPending] = useState<PendingLeagueTips[]>([])
   const [leagueName, setLeagueName] = useState('')
@@ -23,14 +18,6 @@ export function HomePage() {
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [missingMigrations, setMissingMigrations] = useState<string[]>([])
-  const [themePref, setThemePref] = useState<ThemePreference>(() =>
-    getThemePreference(),
-  )
-
-  function onThemeChange(pref: ThemePreference) {
-    setThemePref(pref)
-    setThemePreference(pref)
-  }
 
   const reload = useCallback(async () => {
     if (!user) {
@@ -178,29 +165,6 @@ export function HomePage() {
         </div>
       )}
 
-      <section className="panel stack">
-        <h2>Appearance</h2>
-        <p className="muted">Theme preference stays on this device.</p>
-        <div className="tabs filter-tabs theme-toggle" role="group" aria-label="Theme">
-          {(
-            [
-              ['system', 'System'],
-              ['light', 'Light'],
-              ['dark', 'Dark'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={themePref === id ? 'tab active' : 'tab'}
-              onClick={() => onThemeChange(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </section>
-
       {!user ? (
         <div className="panel">
           <p>Sign in to create or join a league.</p>
@@ -211,15 +175,8 @@ export function HomePage() {
       ) : (
         <>
           <section className="panel">
-            <div className="row-between">
-              <div>
-                <h2>You</h2>
-                <p className="muted">{user.email}</p>
-              </div>
-              <button type="button" className="linkish" onClick={() => void signOut()}>
-                Sign out
-              </button>
-            </div>
+            <h2>You</h2>
+            <p className="muted">{user.email}</p>
             <form className="stack" onSubmit={onSaveName}>
               <label className="field">
                 <span>Display name</span>

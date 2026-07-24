@@ -122,12 +122,140 @@ a.linkish {
 .app {
   width: min(100%, 56rem);
   margin: 0 auto;
-  padding: 2.5rem 1.25rem 3rem;
+  padding: 1.25rem 1.25rem 3rem;
   padding-left: max(1.25rem, env(safe-area-inset-left));
   padding-right: max(1.25rem, env(safe-area-inset-right));
   padding-bottom: max(3rem, calc(1.5rem + env(safe-area-inset-bottom)));
   overflow-x: clip;
   max-width: 100vw;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: 0 -0.15rem 1rem;
+  padding: 0.35rem 0.15rem;
+  padding-top: max(0.35rem, env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.app-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.app-header-brand {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-btn-spacer {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.app-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in srgb, #252422 45%, transparent);
+  display: flex;
+  justify-content: flex-start;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+}
+
+.app-menu {
+  width: min(100%, 20rem);
+  max-height: calc(100dvh - 1.5rem);
+  overflow: auto;
+  align-self: flex-start;
+}
+
+.app-menu-email {
+  margin: 0;
+  word-break: break-all;
+}
+
+.app-menu-heading {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.app-menu-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.app-menu-list a:hover {
+  color: var(--accent);
+}
+
+.app-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.league-title-brand {
+  font-size: clamp(1.35rem, 5vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text);
 }
 
 .hero {
@@ -429,7 +557,7 @@ a.linkish {
 
 .tabs-sticky {
   position: sticky;
-  top: 0;
+  top: calc(3.1rem + env(safe-area-inset-top, 0px));
   z-index: 20;
   padding: 0.45rem 0;
   margin: 0 -0.15rem;

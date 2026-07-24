@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AppHeader } from './components/AppHeader'
 import { AuthProvider } from './context/AuthContext'
 import { HomePage } from './pages/HomePage'
 import { JoinPage } from './pages/JoinPage'
@@ -13,6 +14,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter basename={basename}>
         <div className="app">
+          <AppHeader />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
