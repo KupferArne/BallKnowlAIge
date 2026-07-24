@@ -1142,11 +1142,11 @@ a.linkish {
   }
 
   .tabs-sticky {
-    top: env(safe-area-inset-top, 0px);
+    top: calc(3.1rem + env(safe-area-inset-top, 0px));
   }
 
   .matchday-sticky {
-    top: calc(3rem + env(safe-area-inset-top, 0px));
+    top: calc(6.2rem + env(safe-area-inset-top, 0px));
   }
 
   .hide-sm {
