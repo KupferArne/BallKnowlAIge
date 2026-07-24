@@ -158,6 +158,12 @@ export function LeagueAdminTab({
               <CreateTournamentForm
                 busy={busy}
                 submitLabel="Update tournament"
+                defaults={{
+                  competitionId: tournament.competition_id,
+                  competitionName: tournament.competition_name,
+                  season: tournament.season,
+                  seedDemo: false,
+                }}
                 onSubmit={onCreateTournament}
               />
             </div>

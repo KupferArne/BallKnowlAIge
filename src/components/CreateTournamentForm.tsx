@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
   COMPETITION_CATEGORIES,
   COMPETITIONS,
@@ -7,13 +7,23 @@ import {
   type Competition,
 } from '../data/competitions'
 
+export type TournamentFormDefaults = {
+  competitionId?: string | null
+  competitionName?: string | null
+  season?: string | null
+  seedDemo?: boolean
+}
+
 export function CreateTournamentForm({
   busy,
   submitLabel = 'Create tournament',
+  defaults,
   onSubmit,
 }: {
   busy?: boolean
   submitLabel?: string
+  /** Prefill from the league’s current tournament (e.g. re-seed form). */
+  defaults?: TournamentFormDefaults
   onSubmit: (input: {
     competitionId: string
     competitionName: string
@@ -21,14 +31,43 @@ export function CreateTournamentForm({
     seedDemo: boolean
   }) => Promise<void>
 }) {
+  function resolveDefaults(d?: TournamentFormDefaults) {
+    const rawId = d?.competitionId?.trim() || 'fifa-wc-men'
+    const known = getCompetition(rawId)
+    const id = known ? rawId : 'custom'
+    return {
+      competitionId: id,
+      customName:
+        id === 'custom'
+          ? (d?.competitionName ?? rawId)
+          : '',
+      season: d?.season ?? known?.defaultSeason ?? '',
+      seedDemo: d?.seedDemo ?? true,
+    }
+  }
+
+  const initial = resolveDefaults(defaults)
+
   const [query, setQuery] = useState('')
-  const [competitionId, setCompetitionId] = useState('fifa-wc-men')
-  const [customName, setCustomName] = useState('')
-  const [season, setSeason] = useState(
-    () => getCompetition('fifa-wc-men')?.defaultSeason ?? '2026',
-  )
-  const [seedDemo, setSeedDemo] = useState(true)
+  const [competitionId, setCompetitionId] = useState(initial.competitionId)
+  const [customName, setCustomName] = useState(initial.customName)
+  const [season, setSeason] = useState(initial.season)
+  const [seedDemo, setSeedDemo] = useState(initial.seedDemo)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!defaults) return
+    const next = resolveDefaults(defaults)
+    setCompetitionId(next.competitionId)
+    setCustomName(next.customName)
+    setSeason(next.season)
+    setSeedDemo(next.seedDemo)
+  }, [
+    defaults?.competitionId,
+    defaults?.competitionName,
+    defaults?.season,
+    defaults?.seedDemo,
+  ])
 
   const selected = useMemo(
     () => getCompetition(competitionId),
@@ -79,8 +118,23 @@ export function CreateTournamentForm({
     }
   }
 
+  const currentLabel =
+    selected?.id === 'custom'
+      ? customName || 'Custom'
+      : selected?.name ?? competitionId
+
   return (
     <form className="stack" onSubmit={(e) => void handleSubmit(e)}>
+      {defaults && (
+        <p className="muted">
+          Current:{' '}
+          <strong>
+            {currentLabel}
+            {season ? ` · ${season}` : ''}
+          </strong>
+        </p>
+      )}
+
       <label className="field">
         <span>Search competitions</span>
         <input
