@@ -161,9 +161,9 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 | 8.1 | **Auto-save tips** or “Save all” + **visual confirmation** | Debounced auto-save + “Saved ✓” + toast | [x] |
 | 8.2 | **Leaderboard: highlight own row** | Standings tab — stronger “you” styling | [x] |
 | 8.3 | **Bonus / special questions scoring** | Owner defines prompt, type, points weight (1–50); score awards full weight | [x] |
-| 8.4 | **Knockout opponent updates** | Avoid manual placeholder pain; auto-fill from previous results / sync | [ ] (partially future fixtures sync) |
+| 8.4 | **Knockout opponent updates** | Sync merge keeps concrete names; fill “Winner of match N”; owner Teams edit | [x] |
 | 8.5 | **Mobile UX polish** | Dense cards, auto-save tip inputs, matchday groups, KO placeholder styling | [x] |
-| 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | [ ] |
+| 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | deferred (not MVP) |
 | 8.10 | **Tip reminders + deep link** | In-app pending banner + shareable `?tab=matches&filter=open&pending=1` link | [x] |
 | 8.11 | **Leaderboard player detail** | Expand a row → tips / matches / points **grouped by matchday**; see own + others (after kickoff rules) | [x] |
 
@@ -171,7 +171,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 | # | Request | Notes | Status |
 |---|---|---|---|
-| 8.7 | **Dark mode** | App is already dark-ish; add explicit theme toggle / system preference | [ ] |
+| 8.7 | **Dark mode** | System / Light / Dark toggle (localStorage) + light theme tokens | [x] |
 | 8.8 | **Native / store app** | Out of $0 MVP — PWA “Add to Home Screen” covers hosted app for now | deferred |
 | 8.9 | **Better AI on tournament extras** | Real models + calibration; stub is not for champ/scorer quality | deferred (OpenRouter epic) |
 
@@ -179,7 +179,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 
 - Chat notifications (already out of scope)
 
-**Suggested next slice:** exercise **Epic 10** sync on a real league, then **8.6** paywall flag, then **8.4** KO bracket fill from sync.
+**Suggested next slice:** exercise Epic 10 sync on a real league mid-KO; optional cron later. (**8.6** paywall deferred — not MVP.)
 
 ---
 
@@ -278,7 +278,7 @@ Apply: `00008_fixture_sync.sql`
 5. **Epic 8** — survey UX — mostly ✅  
 6. **Epic 9** — competition catalog ✅  
 7. **Epic 10** — fixture sync (openfootball + football-data.org) ✅ scaffolding  
-8. Epic 8 leftovers — 8.6 paid flag, 8.4 KO from sync
+8. Epic 8 leftovers — 8.6 paywall deferred; optional cron (Epic 10)
 
 ---
 
@@ -287,7 +287,8 @@ Apply: `00008_fixture_sync.sql`
 | Topic | Decision |
 |---|---|
 | UI stack | React + Vite + TS |
-| Auth | Magic Link + password |
+| Visual CI | foryouandyourcustomers (Mulish + turquoise/blue palette) |
+| Auth | Email + password (primary); Magic Link optional |
 | First tournament data | Demo Cup seed |
 | Competition identity | Curated catalog (`competitions.ts`) + `tournaments.competition_id` (Epic 9) |
 | Fixture sync | openfootball (WC, no key) + football-data.org free (Edge Function + token) |

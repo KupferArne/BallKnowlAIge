@@ -3,6 +3,7 @@ import {
   resolveTeamIcon,
   type TeamIconKind,
 } from '../lib/teamIcons'
+import { isPlaceholderTeam } from '../lib/teams'
 
 export function TeamBadge({
   name,
@@ -18,16 +19,17 @@ export function TeamBadge({
   const icon = resolveTeamIcon(name, { kind, crestUrl })
   const [broken, setBroken] = useState(false)
   const showImg = icon.src && !broken
+  const placeholder = isPlaceholderTeam(name)
 
   return (
     <span
-      className={`team-badge team-badge-${align}`}
+      className={`team-badge team-badge-${align}${placeholder ? ' is-placeholder' : ''}`}
       title={name}
     >
       {align === 'end' && (
         <span className="team-badge-name">{name}</span>
       )}
-      {showImg ? (
+      {showImg && !placeholder ? (
         <img
           className={`team-icon team-icon-${icon.type}`}
           src={icon.src}
@@ -38,7 +40,7 @@ export function TeamBadge({
         />
       ) : (
         <span className="team-icon team-icon-fallback" aria-hidden>
-          {icon.initials}
+          {placeholder ? '?' : icon.initials}
         </span>
       )}
       {align === 'start' && (

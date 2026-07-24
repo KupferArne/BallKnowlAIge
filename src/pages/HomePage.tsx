@@ -6,6 +6,11 @@ import { listMyPendingTips, type PendingLeagueTips } from '../lib/bonus'
 import { createLeague, inviteUrl, listMyLeagues } from '../lib/leagues'
 import { pendingBonusPath, pendingTipsPath } from '../lib/pending'
 import { supabase } from '../lib/supabase'
+import {
+  getThemePreference,
+  setThemePreference,
+  type ThemePreference,
+} from '../lib/theme'
 import type { LeagueRow } from '../lib/types'
 
 export function HomePage() {
@@ -18,6 +23,14 @@ export function HomePage() {
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [missingMigrations, setMissingMigrations] = useState<string[]>([])
+  const [themePref, setThemePref] = useState<ThemePreference>(() =>
+    getThemePreference(),
+  )
+
+  function onThemeChange(pref: ThemePreference) {
+    setThemePref(pref)
+    setThemePreference(pref)
+  }
 
   const reload = useCallback(async () => {
     if (!user) {
@@ -55,6 +68,20 @@ export function HomePage() {
           error.code === 'PGRST204')
       ) {
         missing.push('00008_fixture_sync.sql')
+      }
+
+      const { error: rpcErr } = await supabase.rpc('update_match_teams', {
+        p_match_id: '00000000-0000-0000-0000-000000000000',
+        p_home_team: 'x',
+        p_away_team: 'y',
+      })
+      if (
+        rpcErr &&
+        (rpcErr.message.includes('Could not find the function') ||
+          rpcErr.message.includes('schema cache') ||
+          rpcErr.code === 'PGRST202')
+      ) {
+        missing.push('00010_ko_placeholder_merge.sql')
       }
     }
     setMissingMigrations(missing)
@@ -150,6 +177,29 @@ export function HomePage() {
           </ul>
         </div>
       )}
+
+      <section className="panel stack">
+        <h2>Appearance</h2>
+        <p className="muted">Theme preference stays on this device.</p>
+        <div className="tabs filter-tabs theme-toggle" role="group" aria-label="Theme">
+          {(
+            [
+              ['system', 'System'],
+              ['light', 'Light'],
+              ['dark', 'Dark'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={themePref === id ? 'tab active' : 'tab'}
+              onClick={() => onThemeChange(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {!user ? (
         <div className="panel">

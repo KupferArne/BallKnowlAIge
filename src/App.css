@@ -1,15 +1,75 @@
+/* foryouandyourcustomers corporate identity — see fyayc-corporate-identity skill */
+
+:root,
+[data-theme="light"] {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #d3d3d3;
+  --text: #252422;
+  --text-muted: #7d7d77;
+  --accent: #2aa294;
+  --link: #149fd8;
+  --green: #97d33f;
+  --yellow: #fccb30;
+  --orange: #f79724;
+  --red: #ee481d;
+  --blue: #149fd8;
+  --turquoise: #3ecdbc;
+  --input-bg: #ffffff;
+  --placeholder: #7c7c7a;
+  --wash: rgba(37, 36, 34, 0.04);
+  --wash-strong: rgba(37, 36, 34, 0.07);
+  --glow-a: rgba(42, 162, 148, 0.14);
+  --glow-b: rgba(20, 159, 216, 0.1);
+  --on-accent: #ffffff;
+  /* aliases used across the app */
+  --bg0: var(--bg);
+  --bg1: var(--surface);
+  --muted: var(--text-muted);
+  --teal: var(--accent);
+  --teal-bright: var(--accent);
+  --warn: var(--orange);
+  --ok: var(--green);
+  --danger-text: var(--red);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #151515;
+  --surface: #1e1e1c;
+  --border: #3e3e3e;
+  --text: #fafafa;
+  --text-muted: #a8a7a7;
+  --accent: #3ecdbc;
+  --link: #72c5e8;
+  --green: #c1e58c;
+  --yellow: #fde083;
+  --orange: #fac17c;
+  --red: #f59177;
+  --blue: #72c5e8;
+  --turquoise: #8be1d7;
+  --input-bg: #252422;
+  --placeholder: #a8a7a7;
+  --wash: rgba(250, 250, 250, 0.05);
+  --wash-strong: rgba(250, 250, 250, 0.08);
+  --glow-a: rgba(62, 205, 188, 0.18);
+  --glow-b: rgba(114, 197, 232, 0.1);
+  --on-accent: #252422;
+  --bg0: var(--bg);
+  --bg1: var(--surface);
+  --muted: var(--text-muted);
+  --teal: var(--accent);
+  --teal-bright: var(--turquoise);
+  --warn: var(--orange);
+  --ok: var(--green);
+  --danger-text: var(--red);
+  color-scheme: dark;
+}
+
 :root {
-  --bg0: #0b1220;
-  --bg1: #121a2b;
-  --teal: #0f766e;
-  --teal-bright: #14b8a6;
-  --text: #e8eef7;
-  --muted: #9aa8bc;
-  --warn: #fbbf24;
-  --ok: #34d399;
-  --border: rgba(148, 163, 184, 0.18);
-  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  line-height: 1.5;
+  font-family: Mulish, "Helvetica Neue", system-ui, sans-serif;
+  font-weight: 300;
+  line-height: 1.15;
   color: var(--text);
   background: var(--bg0);
   font-synthesis: none;
@@ -21,12 +81,26 @@
   box-sizing: border-box;
 }
 
+strong,
+b,
+button,
+.tab,
+.cta,
+.league-title {
+  font-family: inherit;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
 body {
   margin: 0;
   min-height: 100dvh;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(15, 118, 110, 0.35), transparent 55%),
-    radial-gradient(900px 500px at 90% 0%, rgba(20, 184, 166, 0.18), transparent 50%),
+    radial-gradient(1200px 600px at 10% -10%, var(--glow-a), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, var(--glow-b), transparent 50%),
     var(--bg0);
 }
 
@@ -35,7 +109,14 @@ body {
 }
 
 a {
-  color: var(--teal-bright);
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+a.cta,
+a.linkish {
+  text-decoration: none;
 }
 
 .app {
@@ -55,27 +136,44 @@ a {
 
 .brand {
   margin: 0;
-  font-size: clamp(2rem, 8vw, 2.75rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--teal-bright);
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--accent);
 }
 
 .hero h1,
 .panel h1,
-.panel h2 {
+.panel h2,
+.panel h3 {
   margin: 0;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .hero h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+.panel h1 {
+  font-size: 1.15rem;
+}
+
+.panel h2 {
+  font-size: 1rem;
+}
+
+.panel h3 {
+  font-size: 1rem;
+  color: var(--text-muted);
 }
 
 .lede,
 .muted {
   margin: 0;
   color: var(--muted);
+  font-weight: 300;
 }
 
 .stack {
@@ -92,8 +190,8 @@ a {
 
 .panel {
   padding: 1.25rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--bg1) 90%, transparent);
+  border-radius: 0.5rem;
+  background: var(--surface);
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -114,7 +212,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.7rem 0.85rem;
-  background: #0a101c;
+  background: var(--input-bg);
   color: var(--text);
   font: inherit;
   font-size: 16px;
@@ -133,17 +231,17 @@ a {
 }
 
 .pending-banner {
-  border-color: rgba(251, 191, 36, 0.4);
-  background: color-mix(in srgb, rgba(251, 191, 36, 0.08) 70%, var(--bg1));
+  border-color: color-mix(in srgb, var(--orange) 45%, var(--border));
+  background: color-mix(in srgb, var(--orange) 10%, var(--surface));
 }
 
 .match-card.is-pending {
-  border-color: rgba(251, 191, 36, 0.45);
+  border-color: color-mix(in srgb, var(--orange) 50%, var(--border));
   box-shadow: inset 3px 0 0 var(--warn);
 }
 
 .pending-pill {
-  background: rgba(251, 191, 36, 0.2);
+  background: color-mix(in srgb, var(--orange) 22%, transparent);
   color: var(--warn);
 }
 
@@ -174,7 +272,7 @@ a {
   padding: 0.15rem;
   border: 1px solid var(--border);
   border-radius: 0.55rem;
-  background: rgba(10, 16, 28, 0.45);
+  background: var(--wash);
 }
 
 .competition-group {
@@ -204,16 +302,16 @@ a {
   margin-top: 0.2rem;
   width: 1.1rem;
   height: 1.1rem;
-  accent-color: var(--teal-bright);
+  accent-color: var(--accent);
 }
 
 .cta {
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   padding: 0.7rem 1.1rem;
-  background: var(--teal);
-  color: white;
-  font-weight: 600;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
   text-decoration: none;
   display: inline-flex;
   justify-content: center;
@@ -233,9 +331,10 @@ a {
 .linkish {
   background: none;
   border: 0;
-  color: var(--teal-bright);
+  color: var(--link);
   cursor: pointer;
   font: inherit;
+  font-weight: 700;
   padding: 0;
 }
 
@@ -280,9 +379,10 @@ a {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  background: rgba(20, 184, 166, 0.15);
-  color: var(--teal-bright);
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .ok-text {
@@ -302,7 +402,7 @@ a {
 }
 
 .warn-panel {
-  border-color: rgba(251, 191, 36, 0.45);
+  border-color: color-mix(in srgb, var(--orange) 50%, var(--border));
 }
 
 .setup-steps {
@@ -353,9 +453,10 @@ a {
 }
 
 .tab.active {
-  background: rgba(20, 184, 166, 0.18);
-  color: var(--teal-bright);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
   border-color: transparent;
+  font-weight: 700;
 }
 
 .matchday-section {
@@ -411,10 +512,11 @@ a {
   min-width: 0;
 }
 
+.team-badge.is-placeholder .team-badge-name,
 .team-slot.is-placeholder .team-badge-name {
   font-size: 0.88rem;
-  font-weight: 650;
-  color: #c7d2e0;
+  font-weight: 700;
+  color: var(--placeholder);
 }
 
 .team-badge {
@@ -451,17 +553,17 @@ a {
   flex: 0 0 auto;
   object-fit: contain;
   border-radius: 0.2rem;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--wash);
 }
 
 .team-icon-flag {
   object-fit: cover;
   border-radius: 0.15rem;
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .team-icon-crest {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--wash-strong);
   padding: 0.05rem;
 }
 
@@ -472,7 +574,7 @@ a {
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: var(--teal-bright);
+  color: var(--accent);
   border: 1px solid var(--border);
 }
 
@@ -489,8 +591,8 @@ a {
   align-items: baseline;
   gap: 0.2rem;
   font-size: 1.55rem;
-  font-weight: 800;
-  color: var(--teal-bright);
+  font-weight: 700;
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 
@@ -511,7 +613,7 @@ a {
   min-height: 2.75rem;
   border: 1px solid var(--border);
   border-radius: 0.45rem;
-  background: #0a101c;
+  background: var(--input-bg);
   color: var(--text);
   font: inherit;
   /* 16px prevents iOS zoom on focus */
@@ -529,9 +631,9 @@ a {
 }
 
 .score-input:focus {
-  outline: 2px solid rgba(20, 184, 166, 0.45);
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
   outline-offset: 1px;
-  border-color: var(--teal-bright);
+  border-color: var(--accent);
 }
 
 .my-tip-line {
@@ -576,8 +678,8 @@ a {
 }
 
 .is-you-name {
-  color: var(--teal-bright);
-  font-weight: 650;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .tip-row {
@@ -593,7 +695,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 0.4rem;
   padding: 0.45rem;
-  background: #0a101c;
+  background: var(--input-bg);
   color: var(--text);
   font: inherit;
   font-size: 16px;
@@ -623,13 +725,13 @@ a {
 }
 
 .standings li.standing-row.is-you {
-  border-color: rgba(45, 212, 191, 0.45);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   background: linear-gradient(
     90deg,
-    rgba(45, 212, 191, 0.14),
-    rgba(45, 212, 191, 0.04)
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    color-mix(in srgb, var(--accent) 4%, transparent)
   );
-  box-shadow: inset 3px 0 0 var(--teal-bright);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .standing-toggle {
@@ -661,7 +763,7 @@ a {
 
 .standings .pts {
   font-weight: 700;
-  color: var(--teal-bright);
+  color: var(--accent);
 }
 
 .player-detail {
@@ -712,9 +814,9 @@ a {
 .toast {
   margin: 0;
   padding: 0.55rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(52, 211, 153, 0.35);
-  background: rgba(52, 211, 153, 0.1);
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--green) 40%, var(--border));
+  background: color-mix(in srgb, var(--green) 12%, var(--surface));
 }
 
 .rules-list {
@@ -724,22 +826,22 @@ a {
 }
 
 .pill.status-live {
-  background: rgba(251, 191, 36, 0.2);
+  background: color-mix(in srgb, var(--orange) 22%, transparent);
   color: var(--warn);
 }
 
 .pill.status-finished {
-  background: rgba(52, 211, 153, 0.15);
+  background: color-mix(in srgb, var(--green) 18%, transparent);
   color: var(--ok);
 }
 
 .danger {
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--red) 55%, var(--border));
+  border-radius: 0.4rem;
   padding: 0.7rem 1.1rem;
   background: transparent;
-  color: #fca5a5;
-  font-weight: 600;
+  color: var(--danger-text);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -879,6 +981,37 @@ a {
 
 /* ── Match table (replaces card stack) ─────────────────────────── */
 
+.theme-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.theme-toggle .tab {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+}
+
+.match-edit-teams {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.match-edit-teams input {
+  flex: 1 1 6rem;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
 .auth-advanced {
   margin: 0;
   padding-top: 0.25rem;
@@ -927,7 +1060,7 @@ a {
   color: var(--muted);
   padding: 0.65rem 0.55rem;
   border-bottom: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--bg) 70%, var(--surface));
   position: sticky;
   top: 0;
   z-index: 2;
@@ -949,17 +1082,17 @@ a {
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--muted);
-  background: rgba(20, 184, 166, 0.06);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
   padding: 0.45rem 0.55rem;
 }
 
 .match-tr.is-pending {
   box-shadow: inset 3px 0 0 var(--warn);
-  background: rgba(251, 191, 36, 0.04);
+  background: color-mix(in srgb, var(--orange) 6%, transparent);
 }
 
 .match-tr:hover {
-  background: rgba(148, 163, 184, 0.05);
+  background: var(--wash);
 }
 
 .col-time {
@@ -1049,7 +1182,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(5, 10, 18, 0.65);
+  background: color-mix(in srgb, #252422 55%, transparent);
   display: flex;
   align-items: flex-end;
   justify-content: center;

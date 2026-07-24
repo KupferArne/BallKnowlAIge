@@ -269,6 +269,21 @@ export async function setMatchResult(
   return data as MatchRow
 }
 
+export async function updateMatchTeams(
+  matchId: string,
+  homeTeam: string,
+  awayTeam: string,
+): Promise<MatchRow> {
+  const client = requireClient()
+  const { data, error } = await client.rpc('update_match_teams', {
+    p_match_id: matchId,
+    p_home_team: homeTeam,
+    p_away_team: awayTeam,
+  })
+  if (error) throw asError(error)
+  return data as MatchRow
+}
+
 export type StandingsRow = {
   userId: string
   name: string

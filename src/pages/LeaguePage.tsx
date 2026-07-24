@@ -14,6 +14,7 @@ import { inviteUrl, listMyLeagues } from '../lib/leagues'
 import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
 import { getCompetition } from '../data/competitions'
 import { syncTournamentFixtures } from '../lib/fixtureSync'
+import { proposedKoFills } from '../lib/koFill'
 import { iconKindForCompetitionCategory } from '../lib/teamIcons'
 import {
   membersMissingTip,
@@ -36,6 +37,7 @@ import {
   removeAiAgent,
   renameLeague,
   setMatchResult,
+  updateMatchTeams,
   upsertTip,
   type AiAgentRow,
   type MatchRow,
@@ -225,6 +227,15 @@ export function LeaguePage() {
     return () => window.clearTimeout(t)
   }, [highlightPending, myPendingMatches, matchGroups])
 
+  async function applyKoFillsFrom(current: MatchRow[]) {
+    const fills = proposedKoFills(current)
+    if (fills.length === 0) return 0
+    for (const fill of fills) {
+      await updateMatchTeams(fill.matchId, fill.home_team, fill.away_team)
+    }
+    return fills.length
+  }
+
   async function onSyncFixtures() {
     if (!tournament?.competition_id) {
       setError('Pick a competition before syncing.')
@@ -238,8 +249,19 @@ export function LeaguePage() {
         competitionId: tournament.competition_id,
         season: tournament.season ?? null,
       })
+      let filled = 0
+      try {
+        const data = await getLeaguePlayData(leagueId)
+        filled = await applyKoFillsFrom(data.matches)
+      } catch {
+        /* KO fill needs 00010 — sync itself still succeeded */
+      }
       await reload()
-      showToast(`Synced ${result.upserted} matches (${result.via})`)
+      showToast(
+        filled > 0
+          ? `Synced ${result.upserted} matches · filled ${filled} KO slot(s)`
+          : `Synced ${result.upserted} matches (${result.via})`,
+      )
     } catch (err) {
       setError(formatSupabaseError(err) || 'Sync failed')
     } finally {
@@ -301,13 +323,31 @@ export function LeaguePage() {
     setError('')
     try {
       await setMatchResult(matchId, home, away)
+      let filled = 0
+      try {
+        const data = await getLeaguePlayData(leagueId)
+        filled = await applyKoFillsFrom(data.matches)
+      } catch {
+        /* optional until 00010 applied */
+      }
       await reload()
+      if (filled > 0) showToast(`Filled ${filled} KO opponent slot(s) ✓`)
     } catch (err) {
       setError(formatSupabaseError(err))
     } finally {
       setBusy(false)
     }
   }
+
+  const onUpdateTeams = useCallback(
+    async (matchId: string, homeTeam: string, awayTeam: string) => {
+      setError('')
+      const row = await updateMatchTeams(matchId, homeTeam, awayTeam)
+      setMatches((prev) => prev.map((m) => (m.id === matchId ? row : m)))
+      showToast('Teams updated ✓')
+    },
+    [showToast],
+  )
 
   async function runAdmin(action: () => Promise<void>, goHome = false) {
     setBusy(true)
@@ -471,8 +511,9 @@ export function LeaguePage() {
                       {syncSourcesFor(tournament?.competition_id)
                         .map((s) => s.label)
                         .join(' · ')}
-                      ). Scores may be delayed — not a live ticker. Replaces
-                      demo sample matches.
+                      ). Re-sync after KO rounds to refresh opponents; the app
+                      also fills “Winner of match …” slots from finished results.
+                      Scores may be delayed — not a live ticker.
                     </p>
                     {tournament?.last_synced_at && (
                       <p className="muted">
@@ -542,6 +583,9 @@ export function LeaguePage() {
                   iconKind={teamIconKind}
                   onSaveTip={onSaveTip}
                   onSetResult={onSetResult}
+                  onUpdateTeams={
+                    league.my_role === 'owner' ? onUpdateTeams : undefined
+                  }
                 />
               )}
             </section>
