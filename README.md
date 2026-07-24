@@ -22,6 +22,7 @@ Run these in order in the SQL Editor (paste each file fully):
 6. `supabase/migrations/00007_competition_catalog.sql` (competition picker on tournament create)
 7. `supabase/migrations/00008_fixture_sync.sql` (fixture sync upsert + external ids)
 8. `supabase/migrations/00009_team_crests.sql` (crest/flag URLs on matches)
+9. Later files under `supabase/migrations/` (`00010+`: tip reminders, tip presence on leaderboard, …)
 
 ### Fixture sync (optional)
 

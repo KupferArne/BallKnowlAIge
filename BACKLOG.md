@@ -167,6 +167,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 | 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | deferred (not MVP) |
 | 8.10 | **Tip reminders + deep link** | Banner / highlight only for matches within **24h** of kickoff + deep link | [x] |
 | 8.11 | **Leaderboard player detail** | Expand a row → tips / matches / points **grouped by matchday**; see own + others (after kickoff rules) | [x] |
+| 8.12 | **Leaderboard next-match tip columns** | Next 3–5 matches as logo–logo columns; `-:-` until kickoff, then reveal tip scores | [x] |
 
 ### Nice to have
 

@@ -32,8 +32,11 @@ export type TipRow = {
   id: string
   match_id: string
   user_id: string
-  home_goals: number
-  away_goals: number
+  /** Null when tip exists but scores are hidden until kickoff. */
+  home_goals: number | null
+  away_goals: number | null
+  revealed?: boolean
+  kind?: string
 }
 
 export type TournamentRow = {
@@ -321,7 +324,7 @@ export function computeStandings(
         const tip = tips.find(
           (t) => t.match_id === match.id && t.user_id === member.user_id,
         )
-        if (!tip) continue
+        if (!tip || tip.home_goals === null || tip.away_goals === null) continue
         tipped++
         const pts = scoreTip(
           tip.home_goals,

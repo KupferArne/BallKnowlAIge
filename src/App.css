@@ -993,6 +993,59 @@ a.ghost-btn,
   color: var(--muted);
 }
 
+.col-lb-match {
+  width: 3.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.col-lb-match.is-tipped-hidden {
+  color: var(--accent);
+}
+
+.col-lb-match.is-tip-revealed {
+  color: var(--text);
+}
+
+.lb-match-logos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+.lb-match-logo {
+  width: 1.15rem;
+  height: 1.15rem;
+  object-fit: contain;
+  border-radius: 0.15rem;
+}
+
+.lb-match-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  font-weight: 700;
+  background: var(--wash);
+  color: var(--muted);
+}
+
+.lb-match-vs {
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.standings-table th.col-lb-match {
+  text-align: center;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .col-expand {
   width: 2rem;
   text-align: center;

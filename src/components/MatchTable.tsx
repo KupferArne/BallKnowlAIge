@@ -62,13 +62,16 @@ function MatchTipsDialog({
         <ul className="league-list tip-list">
           {members.map((m) => {
             const tip = tips.find((t) => t.user_id === m.user_id)
+            const tipHome = tip?.home_goals
+            const tipAway = tip?.away_goals
+            const tipOpen = tipHome !== null && tipHome !== undefined && tipAway !== null && tipAway !== undefined
             const pts =
-              tip &&
+              tipOpen &&
               match.home_goals !== null &&
               match.away_goals !== null
                 ? scoreTip(
-                    tip.home_goals,
-                    tip.away_goals,
+                    tipHome,
+                    tipAway,
                     match.home_goals,
                     match.away_goals,
                   )
@@ -80,7 +83,11 @@ function MatchTipsDialog({
                   {m.user_id === userId ? ' (you)' : ''}
                 </span>
                 <span>
-                  {tip ? `${tip.home_goals}:${tip.away_goals}` : '—'}
+                  {tipOpen
+                    ? `${tipHome}:${tipAway}`
+                    : tip
+                      ? '-:-'
+                      : '—'}
                   {pts !== null ? ` (${pts})` : ''}
                 </span>
               </li>
@@ -194,7 +201,11 @@ function MatchTableRow({
     : 'TBD'
 
   const myPts =
-    myTip && match.home_goals !== null && match.away_goals !== null
+    myTip &&
+    myTip.home_goals !== null &&
+    myTip.away_goals !== null &&
+    match.home_goals !== null &&
+    match.away_goals !== null
       ? scoreTip(
           myTip.home_goals,
           myTip.away_goals,

@@ -85,9 +85,16 @@ export function playerTipsByMatchday(
 
     const hasResult =
       match.home_goals !== null && match.away_goals !== null && match.status === 'finished'
+    const tipRevealed =
+      tip && tip.home_goals !== null && tip.away_goals !== null
     const points =
-      tip && hasResult
-        ? scoreTip(tip.home_goals, tip.away_goals, match.home_goals!, match.away_goals!)
+      tipRevealed && hasResult
+        ? scoreTip(
+            tip.home_goals!,
+            tip.away_goals!,
+            match.home_goals!,
+            match.away_goals!,
+          )
         : null
 
     if (points != null) group.dayPoints += points
@@ -95,7 +102,11 @@ export function playerTipsByMatchday(
     group.lines.push({
       matchId: match.id,
       label: `${match.home_team} ${match.home_goals ?? '–'}:${match.away_goals ?? '–'} ${match.away_team}`,
-      tipLabel: tip ? `${tip.home_goals}:${tip.away_goals}` : '— (no tip)',
+      tipLabel: tipRevealed
+        ? `${tip!.home_goals}:${tip!.away_goals}`
+        : tip
+          ? '-:-'
+          : '— (no tip)',
       points,
       kickoffAt: match.kickoff_at,
     })

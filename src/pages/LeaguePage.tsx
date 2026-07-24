@@ -566,8 +566,9 @@ export function LeaguePage() {
             <section className="panel stack">
               <h2>Leaderboard</h2>
               <p className="muted">
-                Tap a player for tips by matchday. Others’ tips show after
-                kickoff.
+                Next matches show as logo columns. <code>-:-</code> means tipped
+                (hidden until kickoff); scores appear after kickoff. Tap a
+                player for full tip history.
               </p>
               <StandingsTable
                 rows={
@@ -586,6 +587,7 @@ export function LeaguePage() {
                 matches={matches}
                 tips={tips}
                 userId={user.id}
+                iconKind={teamIconKind}
               />
             </section>
           )}
@@ -621,7 +623,10 @@ export function LeaguePage() {
                   <strong>2 pts</strong> — correct tendency (incl. draw, wrong score)
                 </li>
                 <li>Tips lock at kickoff</li>
-                <li>Other tips visible after kickoff</li>
+                <li>
+                  Other tips show as <code>-:-</code> until kickoff, then the
+                  score is revealed
+                </li>
                 <li>
                   Bonus questions: owner sets prompt + points weight; correct
                   answer awards that weight in full
