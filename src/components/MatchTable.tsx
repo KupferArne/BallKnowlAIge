@@ -101,7 +101,6 @@ function MatchTableRow({
   iconKind,
   onSaveTip,
   onSetResult,
-  onUpdateTeams,
   onOpenTips,
 }: {
   match: MatchRow
@@ -112,11 +111,6 @@ function MatchTableRow({
   iconKind: TeamIconKind
   onSaveTip: (matchId: string, home: number, away: number) => Promise<void>
   onSetResult: (matchId: string, home: number, away: number) => Promise<void>
-  onUpdateTeams?: (
-    matchId: string,
-    homeTeam: string,
-    awayTeam: string,
-  ) => Promise<void>
   onOpenTips: () => void
 }) {
   const myTip = tips.find((t) => t.user_id === userId)
@@ -126,10 +120,6 @@ function MatchTableRow({
   const [away, setAway] = useState(myTip?.away_goals?.toString() ?? '')
   const [resHome, setResHome] = useState(match.home_goals?.toString() ?? '')
   const [resAway, setResAway] = useState(match.away_goals?.toString() ?? '')
-  const [editTeams, setEditTeams] = useState(false)
-  const [editHome, setEditHome] = useState(match.home_team)
-  const [editAway, setEditAway] = useState(match.away_team)
-  const [teamsBusy, setTeamsBusy] = useState(false)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [resultBusy, setResultBusy] = useState(false)
   const timer = useRef<number | null>(null)
@@ -145,11 +135,6 @@ function MatchTableRow({
     setResHome(match.home_goals?.toString() ?? '')
     setResAway(match.away_goals?.toString() ?? '')
   }, [match.home_goals, match.away_goals])
-
-  useEffect(() => {
-    setEditHome(match.home_team)
-    setEditAway(match.away_team)
-  }, [match.home_team, match.away_team])
 
   useEffect(() => {
     if (locked) return
@@ -191,18 +176,6 @@ function MatchTableRow({
     }
   }
 
-  async function submitTeams(e: FormEvent) {
-    e.preventDefault()
-    if (!onUpdateTeams) return
-    setTeamsBusy(true)
-    try {
-      await onUpdateTeams(match.id, editHome, editAway)
-      setEditTeams(false)
-    } finally {
-      setTeamsBusy(false)
-    }
-  }
-
   const timeLabel = match.kickoff_at
     ? new Date(match.kickoff_at).toLocaleTimeString(undefined, {
         hour: '2-digit',
@@ -240,148 +213,109 @@ function MatchTableRow({
           : ''
 
   return (
-    <Fragment>
-      <tr
-        id={`match-${match.id}`}
-        className={`match-tr status-${status}${pendingTip ? ' is-pending' : ''}`}
-      >
-        <td className="col-time" title={kickoffFull}>
-          <span className="time-text">{timeLabel}</span>
-          <span className={`pill status-${status} status-mini`}>{status}</span>
-        </td>
-        <td className="col-home">
-          <TeamBadge
-            name={match.home_team}
-            crestUrl={match.home_crest_url}
-            kind={iconKind}
-            align="start"
-          />
-        </td>
-        <td className="col-score">
-          {!locked ? (
-            <div className="table-tip">
-              <ScoreInput
-                value={home}
-                onChange={setHome}
-                ariaLabel={`${match.home_team} tip`}
-                disabled={saveState === 'saving'}
-              />
-              <span className="score-colon">:</span>
-              <ScoreInput
-                value={away}
-                onChange={setAway}
-                ariaLabel={`${match.away_team} tip`}
-                disabled={saveState === 'saving'}
-              />
-              {saveHint && (
-                <span
-                  className={
-                    saveState === 'saved'
-                      ? 'save-status ok-text'
-                      : saveState === 'error'
-                        ? 'save-status warn-text'
-                        : 'save-status muted'
-                  }
-                  aria-live="polite"
-                >
-                  {saveHint}
-                </span>
-              )}
-            </div>
-          ) : (
-            <div className="table-result-block">
-              <span className="result-score table-result">
-                {match.home_goals ?? '–'}:{match.away_goals ?? '–'}
-              </span>
-              <span className="muted table-my-tip">
-                tip {myTip ? `${myTip.home_goals}:${myTip.away_goals}` : '—'}
-              </span>
-              {isOwner && status !== 'finished' && (
-                <form className="table-set-result" onSubmit={submitResult}>
-                  <ScoreInput
-                    value={resHome}
-                    onChange={setResHome}
-                    ariaLabel="Home result"
-                    disabled={resultBusy}
-                  />
-                  <span className="score-colon">:</span>
-                  <ScoreInput
-                    value={resAway}
-                    onChange={setResAway}
-                    ariaLabel="Away result"
-                    disabled={resultBusy}
-                  />
-                  <button
-                    className="linkish"
-                    type="submit"
-                    disabled={resultBusy}
-                  >
-                    Set
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
-        </td>
-        <td className="col-away">
-          <TeamBadge
-            name={match.away_team}
-            crestUrl={match.away_crest_url}
-            kind={iconKind}
-            align="end"
-          />
-        </td>
-        <td className="col-pts">
-          {myPts != null ? <strong>{myPts}</strong> : <span className="muted">—</span>}
-        </td>
-        <td className="col-actions">
-          <div className="row-actions">
-            {locked ? (
-              <button type="button" className="linkish" onClick={onOpenTips}>
-                Tips
-              </button>
-            ) : pendingTip ? (
-              <span className="pill pending-pill">Tip</span>
-            ) : null}
-            {isOwner && onUpdateTeams && status !== 'finished' && (
-              <button
-                type="button"
-                className="linkish"
-                onClick={() => setEditTeams((v) => !v)}
+    <tr
+      id={`match-${match.id}`}
+      className={`match-tr status-${status}${pendingTip ? ' is-pending' : ''}`}
+    >
+      <td className="col-time" title={kickoffFull}>
+        <span className="time-text">{timeLabel}</span>
+        <span className={`pill status-${status} status-mini`}>{status}</span>
+      </td>
+      <td className="col-home">
+        <TeamBadge
+          name={match.home_team}
+          crestUrl={match.home_crest_url}
+          kind={iconKind}
+          align="start"
+        />
+      </td>
+      <td className="col-score">
+        {!locked ? (
+          <div className="table-tip">
+            <ScoreInput
+              value={home}
+              onChange={setHome}
+              ariaLabel={`${match.home_team} tip`}
+              disabled={saveState === 'saving'}
+            />
+            <span className="score-colon">:</span>
+            <ScoreInput
+              value={away}
+              onChange={setAway}
+              ariaLabel={`${match.away_team} tip`}
+              disabled={saveState === 'saving'}
+            />
+            {saveHint && (
+              <span
+                className={
+                  saveState === 'saved'
+                    ? 'save-status ok-text'
+                    : saveState === 'error'
+                      ? 'save-status warn-text'
+                      : 'save-status muted'
+                }
+                aria-live="polite"
               >
-                {editTeams ? 'Cancel' : 'Teams'}
-              </button>
+                {saveHint}
+              </span>
             )}
           </div>
-        </td>
-      </tr>
-      {editTeams && isOwner && onUpdateTeams && (
-        <tr className="match-edit-tr">
-          <td colSpan={6}>
-            <form className="match-edit-teams" onSubmit={(e) => void submitTeams(e)}>
-              <input
-                value={editHome}
-                onChange={(e) => setEditHome(e.target.value)}
-                aria-label="Home team"
-                required
-                disabled={teamsBusy}
-              />
-              <span className="muted">vs</span>
-              <input
-                value={editAway}
-                onChange={(e) => setEditAway(e.target.value)}
-                aria-label="Away team"
-                required
-                disabled={teamsBusy}
-              />
-              <button className="linkish" type="submit" disabled={teamsBusy}>
-                Save teams
-              </button>
-            </form>
-          </td>
-        </tr>
-      )}
-    </Fragment>
+        ) : (
+          <div className="table-result-block">
+            <span className="result-score table-result">
+              {match.home_goals ?? '–'}:{match.away_goals ?? '–'}
+            </span>
+            <span className="muted table-my-tip">
+              tip {myTip ? `${myTip.home_goals}:${myTip.away_goals}` : '—'}
+            </span>
+            {isOwner && status !== 'finished' && (
+              <form className="table-set-result" onSubmit={submitResult}>
+                <ScoreInput
+                  value={resHome}
+                  onChange={setResHome}
+                  ariaLabel="Home result"
+                  disabled={resultBusy}
+                />
+                <span className="score-colon">:</span>
+                <ScoreInput
+                  value={resAway}
+                  onChange={setResAway}
+                  ariaLabel="Away result"
+                  disabled={resultBusy}
+                />
+                <button
+                  className="linkish"
+                  type="submit"
+                  disabled={resultBusy}
+                >
+                  Set
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+      </td>
+      <td className="col-away">
+        <TeamBadge
+          name={match.away_team}
+          crestUrl={match.away_crest_url}
+          kind={iconKind}
+          align="end"
+        />
+      </td>
+      <td className="col-pts">
+        {myPts != null ? <strong>{myPts}</strong> : <span className="muted">—</span>}
+      </td>
+      <td className="col-actions">
+        {locked ? (
+          <button type="button" className="linkish" onClick={onOpenTips}>
+            Tips
+          </button>
+        ) : pendingTip ? (
+          <span className="pill pending-pill">Tip</span>
+        ) : null}
+      </td>
+    </tr>
   )
 }
 
@@ -395,7 +329,6 @@ export function MatchTable({
   iconKind,
   onSaveTip,
   onSetResult,
-  onUpdateTeams,
 }: {
   groups: MatchdayMatches[]
   tips: TipRow[]
@@ -406,11 +339,6 @@ export function MatchTable({
   iconKind: TeamIconKind
   onSaveTip: (matchId: string, home: number, away: number) => Promise<void>
   onSetResult: (matchId: string, home: number, away: number) => Promise<void>
-  onUpdateTeams?: (
-    matchId: string,
-    homeTeam: string,
-    awayTeam: string,
-  ) => Promise<void>
 }) {
   const [tipsMatchId, setTipsMatchId] = useState<string | null>(null)
   const tipsMatch = groups
@@ -460,7 +388,6 @@ export function MatchTable({
                     iconKind={iconKind}
                     onSaveTip={onSaveTip}
                     onSetResult={onSetResult}
-                    onUpdateTeams={onUpdateTeams}
                     onOpenTips={() => setTipsMatchId(match.id)}
                   />
                 ))}

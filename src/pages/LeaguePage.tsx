@@ -352,16 +352,6 @@ export function LeaguePage() {
     }
   }
 
-  const onUpdateTeams = useCallback(
-    async (matchId: string, homeTeam: string, awayTeam: string) => {
-      setError('')
-      const row = await updateMatchTeams(matchId, homeTeam, awayTeam)
-      setMatches((prev) => prev.map((m) => (m.id === matchId ? row : m)))
-      showToast('Teams updated ✓')
-    },
-    [showToast],
-  )
-
   async function runAdmin(action: () => Promise<void>, goHome = false) {
     setBusy(true)
     setError('')
@@ -567,9 +557,6 @@ export function LeaguePage() {
                   iconKind={teamIconKind}
                   onSaveTip={onSaveTip}
                   onSetResult={onSetResult}
-                  onUpdateTeams={
-                    league.my_role === 'owner' ? onUpdateTeams : undefined
-                  }
                 />
               )}
             </section>
