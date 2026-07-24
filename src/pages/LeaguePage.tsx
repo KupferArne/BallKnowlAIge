@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom'
 import { BonusTab } from '../components/BonusTab'
 import { CreateTournamentForm } from '../components/CreateTournamentForm'
-import { MatchCard } from '../components/MatchCard'
+import { MatchTable } from '../components/MatchTable'
 import { useAuth } from '../context/AuthContext'
 import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
@@ -531,27 +531,19 @@ export function LeaguePage() {
                   )}
                 </p>
               )}
-              {matchGroups.map((group) => (
-                <div key={group.day} className="matchday-section">
-                  <h2 className="matchday-sticky">{group.day}</h2>
-                  <div className="stack matchday-cards">
-                    {group.matches.map((match) => (
-                      <MatchCard
-                        key={match.id}
-                        match={match}
-                        tips={tips.filter((t) => t.match_id === match.id)}
-                        members={members}
-                        userId={user.id}
-                        isOwner={league.my_role === 'owner'}
-                        pendingTip={pendingMatchIds.has(match.id)}
-                        iconKind={teamIconKind}
-                        onSaveTip={onSaveTip}
-                        onSetResult={onSetResult}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
+              {matchGroups.length > 0 && (
+                <MatchTable
+                  groups={matchGroups}
+                  tips={tips}
+                  members={members}
+                  userId={user.id}
+                  isOwner={league.my_role === 'owner'}
+                  pendingMatchIds={pendingMatchIds}
+                  iconKind={teamIconKind}
+                  onSaveTip={onSaveTip}
+                  onSetResult={onSetResult}
+                />
+              )}
             </section>
           )}
 
