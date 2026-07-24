@@ -427,8 +427,10 @@ export function MatchTable({
               <th scope="col">Home</th>
               <th scope="col">Tip / Result</th>
               <th scope="col">Away</th>
-              <th scope="col">Pts</th>
-              <th scope="col">
+              <th scope="col" className="col-pts">
+                Pts
+              </th>
+              <th scope="col" className="col-actions">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>

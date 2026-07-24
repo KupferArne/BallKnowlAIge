@@ -8,10 +8,11 @@ import {
 import { BonusTab } from '../components/BonusTab'
 import { CreateTournamentForm } from '../components/CreateTournamentForm'
 import { MatchTable } from '../components/MatchTable'
+import { StandingsTable } from '../components/StandingsTable'
 import { useAuth } from '../context/AuthContext'
 import type { BonusAnswerRow, BonusQuestionRow } from '../lib/bonus'
 import { inviteUrl, listMyLeagues } from '../lib/leagues'
-import { groupMatchesByMatchday, playerTipsByMatchday } from '../lib/matchday'
+import { groupMatchesByMatchday } from '../lib/matchday'
 import { getCompetition } from '../data/competitions'
 import { syncTournamentFixtures } from '../lib/fixtureSync'
 import { proposedKoFills } from '../lib/koFill'
@@ -88,7 +89,6 @@ export function LeaguePage() {
   const [tournament, setTournament] = useState<TournamentRow | null>(null)
   const [aiName, setAiName] = useState('Stub AI')
   const [leagueNameEdit, setLeagueNameEdit] = useState('')
-  const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null)
   const [toast, setToast] = useState('')
   const [matchFilter, setMatchFilter] = useState<MatchFilter>(
     () => parseFilter(searchParams.get('filter')) ?? 'open',
@@ -403,20 +403,26 @@ export function LeaguePage() {
           <nav className="tabs tabs-sticky" aria-label="League sections">
             {(
               [
-                ['matches', 'Matches'],
-                ['standings', 'Standings'],
-                ['bonus', `Bonus${myPendingBonuses.length ? ` (${myPendingBonuses.length})` : ''}`],
-                ['rules', 'Rules'],
-                ['league', 'League'],
+                ['matches', 'Matches', 'Tips'],
+                ['standings', 'Standings', 'Table'],
+                [
+                  'bonus',
+                  `Bonus${myPendingBonuses.length ? ` (${myPendingBonuses.length})` : ''}`,
+                  `Bonus${myPendingBonuses.length ? ` ${myPendingBonuses.length}` : ''}`,
+                ],
+                ['rules', 'Rules', 'Rules'],
+                ['league', 'League', 'League'],
               ] as const
-            ).map(([id, label]) => (
+            ).map(([id, label, short]) => (
               <button
                 key={id}
                 type="button"
                 className={tab === id ? 'tab active' : 'tab'}
                 onClick={() => setTabAndUrl(id)}
+                aria-label={label}
               >
-                {label}
+                <span className="tab-label-full">{label}</span>
+                <span className="tab-label-short">{short}</span>
               </button>
             ))}
           </nav>
@@ -595,89 +601,27 @@ export function LeaguePage() {
             <section className="panel stack">
               <h2>Leaderboard</h2>
               <p className="muted">
-                Tap a player to expand tips by matchday. Others’ tips show after
+                Tap a player for tips by matchday. Others’ tips show after
                 kickoff.
               </p>
-              <ol className="standings">
-                {(standings.length
-                  ? standings
-                  : members.map((m) => ({
-                      userId: m.user_id,
-                      name: m.display_name,
-                      points: 0,
-                      matchPoints: 0,
-                      bonusPoints: 0,
-                      exact: 0,
-                      tipped: 0,
-                    }))
-                ).map((row, i) => {
-                  const isYou = row.userId === user.id
-                  const open = expandedPlayer === row.userId
-                  const groups = open
-                    ? playerTipsByMatchday(row.userId, matches, tips, user.id)
-                    : []
-                  return (
-                    <li
-                      key={row.userId}
-                      className={isYou ? 'standing-row is-you' : 'standing-row'}
-                    >
-                      <button
-                        type="button"
-                        className="standing-toggle"
-                        onClick={() =>
-                          setExpandedPlayer((id) =>
-                            id === row.userId ? null : row.userId,
-                          )
-                        }
-                        aria-expanded={open}
-                      >
-                        <span className="rank">{i + 1}.</span>
-                        <span className="name">
-                          {row.name}
-                          {isYou ? ' (you)' : ''}
-                          <span className="chev">{open ? '▾' : '▸'}</span>
-                        </span>
-                        <span className="pts">{row.points} pts</span>
-                      </button>
-                      <span className="muted meta">
-                        {row.exact} exact · {row.tipped} tipped
-                        {row.bonusPoints
-                          ? ` · ${row.bonusPoints} bonus`
-                          : ''}
-                      </span>
-                      {open && (
-                        <div className="player-detail">
-                          {groups.length === 0 ? (
-                            <p className="muted">No visible tips yet.</p>
-                          ) : (
-                            groups.map((g) => (
-                              <div key={g.day} className="matchday-block">
-                                <div className="matchday-head">
-                                  <strong>{g.day}</strong>
-                                  <span className="muted">{g.dayPoints} pts</span>
-                                </div>
-                                <ul className="matchday-lines">
-                                  {g.lines.map((line) => (
-                                    <li key={line.matchId}>
-                                      <span>{line.label}</span>
-                                      <span>
-                                        tip {line.tipLabel}
-                                        {line.points != null
-                                          ? ` · ${line.points} pts`
-                                          : ''}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  )
-                })}
-              </ol>
+              <StandingsTable
+                rows={
+                  standings.length
+                    ? standings
+                    : members.map((m) => ({
+                        userId: m.user_id,
+                        name: m.display_name,
+                        points: 0,
+                        matchPoints: 0,
+                        bonusPoints: 0,
+                        exact: 0,
+                        tipped: 0,
+                      }))
+                }
+                matches={matches}
+                tips={tips}
+                userId={user.id}
+              />
             </section>
           )}
 
