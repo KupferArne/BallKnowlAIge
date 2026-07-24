@@ -101,6 +101,21 @@ export function StandingsTable({
   return (
     <div className="standings-table-wrap">
       <table className="standings-table">
+        <colgroup>
+          <col className="col-rank" />
+          <col className="col-player" />
+          <col className="col-lb-pts" />
+          {previews.map((m, i) => (
+            <col
+              key={m.id}
+              className={`col-lb-match${i >= 3 ? ' hide-xs' : ''}${i >= 4 ? ' hide-sm' : ''}`}
+            />
+          ))}
+          <col className="col-exact hide-xs" />
+          <col className="col-tipped hide-xs" />
+          <col className="col-bonus hide-sm" />
+          <col className="col-expand" />
+        </colgroup>
         <thead>
           <tr>
             <th scope="col" className="col-rank">
