@@ -145,6 +145,7 @@ Secrets: `.cursor/rules/secrets-key-hygiene.mdc`
 - [x] Demo seed + stub AI tip generation
 - [x] Feedback form link
 - [x] Players can leave a league
+- [x] Dedicated **Admin** tab (owner-only): tournament/sync, bonus manage, AI, league settings
 
 **Done when:** owner can run a league without using the Supabase dashboard for normal ops.
 

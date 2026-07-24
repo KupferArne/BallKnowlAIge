@@ -275,6 +275,7 @@ function BonusAnswerCard({
 export function BonusTab({
   leagueId,
   isOwner,
+  manage = false,
   userId,
   questions,
   answers,
@@ -283,6 +284,8 @@ export function BonusTab({
 }: {
   leagueId: string
   isOwner: boolean
+  /** Owner create / score / delete UI (Admin view). */
+  manage?: boolean
   userId: string
   questions: BonusQuestionRow[]
   answers: BonusAnswerRow[]
@@ -292,6 +295,7 @@ export function BonusTab({
     answers: BonusAnswerRow[]
   }) => void
 }) {
+  const canManage = manage && isOwner
   const humans = useMemo(
     () => members.filter((m) => m.kind !== 'ai' && !m.user_id.startsWith('ai:')),
     [members],
@@ -341,14 +345,15 @@ export function BonusTab({
   return (
     <section className="stack">
       <div className="panel">
-        <h2>Bonus questions</h2>
+        <h2>{canManage ? 'Manage bonus questions' : 'Bonus questions'}</h2>
         <p className="muted">
-          Owner-defined extras with custom points. Answers lock at the deadline
-          (or when scored). Correct answers award the full point weight.
+          {canManage
+            ? 'Create questions, set the correct answer, and award points.'
+            : 'Answer extras before the deadline. Correct answers award the full point weight.'}
         </p>
       </div>
 
-      {isOwner && (
+      {canManage && (
         <form className="panel stack" onSubmit={onCreate}>
           <h2>Add bonus question</h2>
           <label className="field">
@@ -423,7 +428,7 @@ export function BonusTab({
             answers={answers}
             members={humans}
             userId={userId}
-            isOwner={isOwner}
+            isOwner={canManage}
             onAnswered={(row) => {
               const rest = answers.filter(
                 (a) =>

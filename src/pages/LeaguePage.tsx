@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 import { BonusTab } from '../components/BonusTab'
-import { CreateTournamentForm } from '../components/CreateTournamentForm'
+import { LeagueAdminTab } from '../components/LeagueAdminTab'
 import { MatchTable } from '../components/MatchTable'
 import { StandingsTable } from '../components/StandingsTable'
 import { useAuth } from '../context/AuthContext'
@@ -18,14 +18,11 @@ import { syncTournamentFixtures } from '../lib/fixtureSync'
 import { proposedKoFills } from '../lib/koFill'
 import { iconKindForCompetitionCategory } from '../lib/teamIcons'
 import {
-  isWithinReminderWindow,
-  membersMissingTip,
   pendingOpenBonuses,
   pendingOpenMatches,
   pendingTipsUrl,
 } from '../lib/pending'
-import { isTipLocked, matchStatusLabel } from '../lib/scoring'
-import { canSyncCompetition, syncSourcesFor } from '../lib/syncSources'
+import { matchStatusLabel } from '../lib/scoring'
 import {
   addStubAiAgent,
   computeStandings,
@@ -49,14 +46,16 @@ import {
 } from '../lib/matches'
 import type { LeagueRow } from '../lib/types'
 
-type Tab = 'matches' | 'standings' | 'bonus' | 'rules' | 'league'
+type Tab = 'matches' | 'standings' | 'bonus' | 'rules' | 'league' | 'admin'
 type MatchFilter = 'open' | 'all' | 'done'
 
-const TABS: Tab[] = ['matches', 'standings', 'bonus', 'rules', 'league']
+const PLAYER_TABS: Tab[] = ['matches', 'standings', 'bonus', 'rules', 'league']
+const OWNER_TABS: Tab[] = [...PLAYER_TABS, 'admin']
 const FILTERS: MatchFilter[] = ['open', 'all', 'done']
 
-function parseTab(value: string | null): Tab | null {
-  return value && TABS.includes(value as Tab) ? (value as Tab) : null
+function parseTab(value: string | null, isOwner: boolean): Tab | null {
+  const tabs = isOwner ? OWNER_TABS : PLAYER_TABS
+  return value && tabs.includes(value as Tab) ? (value as Tab) : null
 }
 
 function parseFilter(value: string | null): MatchFilter | null {
@@ -75,7 +74,7 @@ export function LeaguePage() {
   const { ready, user } = useAuth()
   const [league, setLeague] = useState<LeagueRow | null>(null)
   const [tab, setTab] = useState<Tab>(
-    () => parseTab(searchParams.get('tab')) ?? 'matches',
+    () => parseTab(searchParams.get('tab'), true) ?? 'matches',
   )
   const [matches, setMatches] = useState<MatchRow[]>([])
   const [tips, setTips] = useState<TipRow[]>([])
@@ -177,12 +176,25 @@ export function LeaguePage() {
     void reload().catch((err) => setError(formatSupabaseError(err)))
   }, [ready, user, reload])
 
+  const isOwner = league?.my_role === 'owner'
+
   useEffect(() => {
-    const t = parseTab(searchParams.get('tab'))
+    const t = parseTab(searchParams.get('tab'), Boolean(isOwner))
     if (t) setTab(t)
+    else if (searchParams.get('tab') === 'admin' && league && !isOwner) {
+      setTab('matches')
+      setSearchParams(
+        (prev) => {
+          const p = new URLSearchParams(prev)
+          p.set('tab', 'matches')
+          return p
+        },
+        { replace: true },
+      )
+    }
     const f = parseFilter(searchParams.get('filter'))
     if (f) setMatchFilter(f)
-  }, [searchParams])
+  }, [searchParams, isOwner, league, setSearchParams])
 
   const standings = useMemo(
     () =>
@@ -407,6 +419,9 @@ export function LeaguePage() {
                 ],
                 ['rules', 'Rules', 'Rules'],
                 ['league', 'League', 'League'],
+                ...(isOwner
+                  ? ([['admin', 'Admin', 'Admin']] as const)
+                  : []),
               ] as const
             ).map(([id, label, short]) => (
               <button
@@ -484,58 +499,25 @@ export function LeaguePage() {
 
           {tab === 'matches' && (
             <section className="stack matches-section">
-              {!tournamentName && league.my_role === 'owner' && (
+              {!tournamentName && (
                 <div className="panel stack">
-                  <h2>Create tournament</h2>
+                  <h2>No tournament yet</h2>
                   <p className="muted">
-                    Pick the competition (e.g. World Cup, Bundesliga) and
-                    optional season. Demo fixtures are sample matches so you can
-                    tip immediately — not the real schedule yet.
+                    {isOwner
+                      ? 'Create a tournament and sync fixtures in Admin.'
+                      : 'Waiting for the owner to create a tournament.'}
                   </p>
-                  <CreateTournamentForm
-                    busy={busy}
-                    onSubmit={onCreateTournament}
-                  />
-                </div>
-              )}
-              {!tournamentName && league.my_role !== 'owner' && (
-                <p className="muted">
-                  Waiting for the owner to create a tournament.
-                </p>
-              )}
-              {tournamentName &&
-                league.my_role === 'owner' &&
-                canSyncCompetition(tournament?.competition_id) && (
-                  <div className="panel stack sync-panel">
-                    <h2>Fixture sync</h2>
-                    <p className="muted">
-                      Pull schedule + results from free sources (
-                      {syncSourcesFor(tournament?.competition_id)
-                        .map((s) => s.label)
-                        .join(' · ')}
-                      ). Re-sync after KO rounds to refresh opponents; the app
-                      also fills “Winner of match …” slots from finished results.
-                      Scores may be delayed — not a live ticker.
-                    </p>
-                    {tournament?.last_synced_at && (
-                      <p className="muted">
-                        Last sync:{' '}
-                        {new Date(tournament.last_synced_at).toLocaleString()}
-                        {tournament.sync_source
-                          ? ` · ${tournament.sync_source}`
-                          : ''}
-                      </p>
-                    )}
+                  {isOwner && (
                     <button
                       type="button"
                       className="cta enabled"
-                      disabled={busy}
-                      onClick={() => void onSyncFixtures()}
+                      onClick={() => setTabAndUrl('admin')}
                     >
-                      {busy ? 'Syncing…' : 'Sync fixtures now'}
+                      Open Admin
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
 
               {tournamentName && (
                 <div className="tabs filter-tabs" role="group" aria-label="Match filter">
@@ -624,7 +606,8 @@ export function LeaguePage() {
           {tab === 'bonus' && (
             <BonusTab
               leagueId={leagueId}
-              isOwner={league.my_role === 'owner'}
+              isOwner={Boolean(isOwner)}
+              manage={false}
               userId={user.id}
               questions={bonusQuestions}
               answers={bonusAnswers}
@@ -663,52 +646,6 @@ export function LeaguePage() {
           {tab === 'league' && (
             <section className="stack">
               <div className="panel stack">
-                <h2>Tip reminder link</h2>
-                <p className="muted">
-                  Share this deep link so players jump to matches kicking off
-                  within 24 hours that still need a tip.
-                </p>
-                <button
-                  type="button"
-                  className="cta enabled"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(pendingTipsUrl(leagueId))
-                    setNudgeCopied(true)
-                    window.setTimeout(() => setNudgeCopied(false), 2000)
-                  }}
-                >
-                  {nudgeCopied ? 'Copied!' : 'Copy pending-tips link'}
-                </button>
-                {league.my_role === 'owner' && (
-                  <ul className="league-list">
-                    {matches
-                      .filter(
-                        (m) =>
-                          matchStatusLabel(m.status, m.kickoff_at) !==
-                            'finished' &&
-                          !isTipLocked(m.kickoff_at) &&
-                          isWithinReminderWindow(m.kickoff_at),
-                      )
-                      .map((m) => {
-                        const missing = membersMissingTip(m.id, tips, members)
-                        if (missing.length === 0) return null
-                        return (
-                          <li key={m.id}>
-                            <span>
-                              {m.home_team} vs {m.away_team}
-                            </span>
-                            <span className="muted">
-                              missing:{' '}
-                              {missing.map((x) => x.display_name).join(', ')}
-                            </span>
-                          </li>
-                        )
-                      })}
-                  </ul>
-                )}
-              </div>
-
-              <div className="panel stack">
                 <h2>Invite</h2>
                 <button
                   type="button"
@@ -726,130 +663,24 @@ export function LeaguePage() {
                 </button>
               </div>
 
-              {league.my_role === 'owner' && (
-                <div className="panel stack">
-                  <h2>AI players (stub)</h2>
-                  <p className="muted">
-                    Free heuristic tips — no OpenRouter key. Counts on the
-                    leaderboard.
-                  </p>
-                  <form
-                    className="stack"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      void runAdmin(async () => {
-                        await addStubAiAgent(leagueId, aiName)
-                        setAiName('Stub AI')
-                      })
-                    }}
-                  >
-                    <label className="field">
-                      <span>Name</span>
-                      <input
-                        value={aiName}
-                        onChange={(e) => setAiName(e.target.value)}
-                        maxLength={40}
-                        required
-                      />
-                    </label>
-                    <button className="cta enabled" type="submit" disabled={busy}>
-                      Add stub AI
-                    </button>
-                  </form>
-                  {aiAgents.length > 0 && (
-                    <>
-                      <ul className="league-list">
-                        {aiAgents.map((a) => (
-                          <li key={a.id}>
-                            <span>
-                              {a.name} <span className="pill">ai</span>
-                            </span>
-                            <button
-                              type="button"
-                              className="linkish"
-                              disabled={busy}
-                              onClick={() =>
-                                void runAdmin(() => removeAiAgent(a.id))
-                              }
-                            >
-                              Remove
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                      <button
-                        type="button"
-                        className="cta enabled"
-                        disabled={busy}
-                        onClick={() =>
-                          void runAdmin(async () => {
-                            await regenerateStubAiTips(leagueId)
-                          })
-                        }
-                      >
-                        Regenerate AI tips
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {league.my_role === 'owner' && (
-                <div className="panel stack">
-                  <h2>Owner tools</h2>
-                  <form
-                    className="stack"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      void runAdmin(async () => {
-                        await renameLeague(leagueId, leagueNameEdit)
-                      })
-                    }}
-                  >
-                    <label className="field">
-                      <span>League name</span>
-                      <input
-                        value={leagueNameEdit}
-                        onChange={(e) => setLeagueNameEdit(e.target.value)}
-                        required
-                        maxLength={80}
-                      />
-                    </label>
-                    <button className="cta enabled" type="submit" disabled={busy}>
-                      Rename league
-                    </button>
-                  </form>
-                  <div className="stack">
-                    <h3>Change competition / re-seed</h3>
-                    <p className="muted">
-                      Updates the competition label. Checking “demo fixtures”
-                      clears tips and rebuilds sample matches — re-run
-                      “Regenerate AI tips” afterwards.
-                    </p>
-                    <CreateTournamentForm
-                      busy={busy}
-                      submitLabel="Update tournament"
-                      onSubmit={onCreateTournament}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className="danger"
-                    disabled={busy}
-                    onClick={() => {
-                      if (
-                        confirm(
-                          'Delete this league and all matches/tips permanently?',
-                        )
-                      ) {
-                        void runAdmin(() => deleteLeague(leagueId), true)
-                      }
-                    }}
-                  >
-                    Delete league
-                  </button>
-                </div>
-              )}
+              <div className="panel stack">
+                <h2>Tip reminder link</h2>
+                <p className="muted">
+                  Jump to matches kicking off within 24 hours that still need a
+                  tip.
+                </p>
+                <button
+                  type="button"
+                  className="cta enabled"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(pendingTipsUrl(leagueId))
+                    setNudgeCopied(true)
+                    window.setTimeout(() => setNudgeCopied(false), 2000)
+                  }}
+                >
+                  {nudgeCopied ? 'Copied!' : 'Copy pending-tips link'}
+                </button>
+              </div>
 
               <div className="panel stack">
                 <h2>Members</h2>
@@ -860,24 +691,10 @@ export function LeaguePage() {
                         {m.display_name}{' '}
                         <span className="pill">{m.role}</span>
                       </span>
-                      {league.my_role === 'owner' &&
-                        m.kind !== 'ai' &&
-                        m.user_id !== user?.id && (
-                          <button
-                            type="button"
-                            className="linkish"
-                            disabled={busy}
-                            onClick={() =>
-                              void runAdmin(() => kickMember(leagueId, m.user_id))
-                            }
-                          >
-                            Kick
-                          </button>
-                        )}
                     </li>
                   ))}
                 </ul>
-                {league.my_role !== 'owner' && (
+                {!isOwner && (
                   <button
                     type="button"
                     className="danger"
@@ -895,11 +712,73 @@ export function LeaguePage() {
 
               <div className="panel stack">
                 <h2>Feedback</h2>
-                <a className="cta enabled" href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+                <a
+                  className="cta enabled"
+                  href={FEEDBACK_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Open feedback form
                 </a>
               </div>
             </section>
+          )}
+
+          {tab === 'admin' && isOwner && (
+            <LeagueAdminTab
+              leagueId={leagueId}
+              userId={user.id}
+              tournament={tournament}
+              matches={matches}
+              tips={tips}
+              members={members}
+              aiAgents={aiAgents}
+              bonusQuestions={bonusQuestions}
+              bonusAnswers={bonusAnswers}
+              busy={busy}
+              leagueNameEdit={leagueNameEdit}
+              aiName={aiName}
+              onLeagueNameEdit={setLeagueNameEdit}
+              onAiName={setAiName}
+              onCreateTournament={onCreateTournament}
+              onSyncFixtures={onSyncFixtures}
+              onRenameLeague={() =>
+                runAdmin(async () => {
+                  await renameLeague(leagueId, leagueNameEdit)
+                })
+              }
+              onDeleteLeague={() => {
+                if (
+                  confirm(
+                    'Delete this league and all matches/tips permanently?',
+                  )
+                ) {
+                  void runAdmin(() => deleteLeague(leagueId), true)
+                }
+              }}
+              onAddAi={(e) => {
+                e.preventDefault()
+                void runAdmin(async () => {
+                  await addStubAiAgent(leagueId, aiName)
+                  setAiName('Stub AI')
+                })
+              }}
+              onRemoveAi={(id) => {
+                void runAdmin(() => removeAiAgent(id))
+              }}
+              onRegenerateAiTips={() => {
+                void runAdmin(async () => {
+                  await regenerateStubAiTips(leagueId)
+                })
+              }}
+              onKickMember={(memberId) => {
+                void runAdmin(() => kickMember(leagueId, memberId))
+              }}
+              onBonusChange={({ questions, answers }) => {
+                setBonusQuestions(questions)
+                setBonusAnswers(answers)
+              }}
+            />
           )}
         </>
       ) : (
