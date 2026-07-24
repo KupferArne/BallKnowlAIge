@@ -4,7 +4,21 @@ import { isTipLocked } from './scoring'
 import type { BonusAnswerRow, BonusQuestionRow } from './bonus'
 import { isBonusLocked } from './bonus'
 
-/** Open matches the user can still tip (and has not tipped). */
+const REMINDER_WINDOW_MS = 24 * 60 * 60 * 1000
+
+/** True when kickoff is in the future and within the next 24 hours. */
+export function isWithinReminderWindow(kickoffAt: string | null): boolean {
+  if (!kickoffAt) return false
+  const kick = new Date(kickoffAt).getTime()
+  if (Number.isNaN(kick)) return false
+  const now = Date.now()
+  return kick > now && kick - now <= REMINDER_WINDOW_MS
+}
+
+/**
+ * Matches that should surface as tip reminders: still open, untipped,
+ * and kicking off within 24 hours (not the whole season).
+ */
 export function pendingOpenMatches(
   matches: MatchRow[],
   tips: TipRow[],
@@ -13,6 +27,7 @@ export function pendingOpenMatches(
   return matches.filter((m) => {
     if (m.status === 'finished') return false
     if (isTipLocked(m.kickoff_at)) return false
+    if (!isWithinReminderWindow(m.kickoff_at)) return false
     return !tips.some((t) => t.match_id === m.id && t.user_id === userId)
   })
 }

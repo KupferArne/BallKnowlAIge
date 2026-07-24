@@ -195,8 +195,10 @@ export function HomePage() {
 
           {actionablePending.length > 0 && (
             <section className="panel pending-banner stack">
-              <h2>Open tips</h2>
-              <p className="muted">Jump back into leagues that still need your picks.</p>
+              <h2>Due soon</h2>
+              <p className="muted">
+                Matches kicking off within 24 hours that still need your tip.
+              </p>
               <ul className="league-list">
                 {actionablePending.map((p) => (
                   <li key={p.league_id}>

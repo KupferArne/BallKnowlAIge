@@ -18,6 +18,7 @@ import { syncTournamentFixtures } from '../lib/fixtureSync'
 import { proposedKoFills } from '../lib/koFill'
 import { iconKindForCompetitionCategory } from '../lib/teamIcons'
 import {
+  isWithinReminderWindow,
   membersMissingTip,
   pendingOpenBonuses,
   pendingOpenMatches,
@@ -427,8 +428,9 @@ export function LeaguePage() {
               <p className="muted">
                 {myPendingMatches.length > 0 && (
                   <>
-                    {myPendingMatches.length} open match
-                    {myPendingMatches.length === 1 ? '' : 'es'} without your tip
+                    {myPendingMatches.length} untipped match
+                    {myPendingMatches.length === 1 ? '' : 'es'} kick
+                    {myPendingMatches.length === 1 ? 's' : ''} off within 24h
                   </>
                 )}
                 {myPendingMatches.length > 0 && myPendingBonuses.length > 0 && ' · '}
@@ -663,8 +665,8 @@ export function LeaguePage() {
               <div className="panel stack">
                 <h2>Tip reminder link</h2>
                 <p className="muted">
-                  Share this deep link so players jump straight to open matches
-                  that still need a tip.
+                  Share this deep link so players jump to matches kicking off
+                  within 24 hours that still need a tip.
                 </p>
                 <button
                   type="button"
@@ -683,7 +685,9 @@ export function LeaguePage() {
                       .filter(
                         (m) =>
                           matchStatusLabel(m.status, m.kickoff_at) !==
-                            'finished' && !isTipLocked(m.kickoff_at),
+                            'finished' &&
+                          !isTipLocked(m.kickoff_at) &&
+                          isWithinReminderWindow(m.kickoff_at),
                       )
                       .map((m) => {
                         const missing = membersMissingTip(m.id, tips, members)

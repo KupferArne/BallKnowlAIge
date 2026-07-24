@@ -1348,6 +1348,16 @@ a.ghost-btn,
   z-index: 2;
 }
 
+.match-table th.col-score,
+.match-table th.col-pts,
+.match-table th.col-actions {
+  text-align: center;
+}
+
+.match-table th.col-away {
+  text-align: right;
+}
+
 .match-table td {
   padding: 0.55rem;
   border-bottom: 1px solid var(--border);
@@ -1378,14 +1388,14 @@ a.ghost-btn,
 }
 
 .col-time {
-  width: 4.5rem;
+  width: 4.75rem;
   white-space: nowrap;
 }
 
 .col-time .time-text {
   display: block;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .status-mini {
@@ -1397,20 +1407,29 @@ a.ghost-btn,
 .col-home,
 .col-away {
   min-width: 0;
-  width: 28%;
+  width: 26%;
+}
+
+.col-away {
+  text-align: right;
+}
+
+.match-table .col-away .team-badge {
+  margin-left: auto;
 }
 
 .match-table .team-badge-name {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .match-table .team-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
 }
 
 .col-score {
-  width: 8.5rem;
+  width: 8rem;
   text-align: center;
 }
 
@@ -1482,6 +1501,54 @@ a.ghost-btn,
 @media (min-width: 640px) {
   .tips-dialog-backdrop {
     align-items: center;
+  }
+}
+
+@media (min-width: 900px) {
+  .match-table {
+    font-size: 0.98rem;
+  }
+
+  .match-table th,
+  .match-table td {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .col-time {
+    width: 5.5rem;
+  }
+
+  .col-home,
+  .col-away {
+    width: 28%;
+  }
+
+  .col-score {
+    width: 9.5rem;
+  }
+
+  .col-pts {
+    width: 3.25rem;
+  }
+
+  .col-actions {
+    width: 3.75rem;
+  }
+
+  .match-table .team-badge-name {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .table-tip {
+    gap: 0.35rem;
+  }
+
+  .match-table .score-input {
+    width: 2.6rem;
+    min-height: 2.4rem;
   }
 }
 

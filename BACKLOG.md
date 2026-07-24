@@ -164,7 +164,7 @@ Source: post-tournament survey (“What should we improve” / “Feature ideas�
 | 8.4 | **Knockout opponent updates** | Sync merge keeps concrete names; fill “Winner of match N”; owner Teams edit | [x] |
 | 8.5 | **Mobile UX polish** | Dense cards, auto-save tip inputs, matchday groups, KO placeholder styling | [x] |
 | 8.6 | **Paywall before first tip** | Block tips until entry marked paid (owner/admin or Stripe later) | deferred (not MVP) |
-| 8.10 | **Tip reminders + deep link** | In-app pending banner + shareable `?tab=matches&filter=open&pending=1` link | [x] |
+| 8.10 | **Tip reminders + deep link** | Banner / highlight only for matches within **24h** of kickoff + deep link | [x] |
 | 8.11 | **Leaderboard player detail** | Expand a row → tips / matches / points **grouped by matchday**; see own + others (after kickoff rules) | [x] |
 
 ### Nice to have

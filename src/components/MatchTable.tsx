@@ -328,7 +328,7 @@ function MatchTableRow({
             name={match.away_team}
             crestUrl={match.away_crest_url}
             kind={iconKind}
-            align="start"
+            align="end"
           />
         </td>
         <td className="col-pts">
@@ -423,10 +423,18 @@ export function MatchTable({
         <table className="match-table">
           <thead>
             <tr>
-              <th scope="col">Time</th>
-              <th scope="col">Home</th>
-              <th scope="col">Tip / Result</th>
-              <th scope="col">Away</th>
+              <th scope="col" className="col-time">
+                Time
+              </th>
+              <th scope="col" className="col-home">
+                Home
+              </th>
+              <th scope="col" className="col-score">
+                Tip
+              </th>
+              <th scope="col" className="col-away">
+                Away
+              </th>
               <th scope="col" className="col-pts">
                 Pts
               </th>
