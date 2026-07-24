@@ -21,6 +21,8 @@ type AuthState = {
   configured: boolean
   signInWithMagicLink: (email: string) => Promise<void>
   signInWithPassword: (email: string, password: string) => Promise<void>
+  /** Returns true if a session exists immediately; false if email confirm is required. */
+  signUpWithPassword: (email: string, password: string) => Promise<boolean>
   updateDisplayName: (name: string) => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
@@ -92,6 +94,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  const signUpWithPassword = useCallback(async (email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters')
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { emailRedirectTo: authEmailRedirectTo() },
+    })
+    if (error) throw error
+    return Boolean(data.session)
+  }, [])
+
   const updateDisplayName = useCallback(async (name: string) => {
     const p = await ensureProfile(name)
     setProfile(p)
@@ -112,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       configured: isSupabaseConfigured,
       signInWithMagicLink,
       signInWithPassword,
+      signUpWithPassword,
       updateDisplayName,
       signOut,
       refreshProfile,
@@ -122,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       signInWithMagicLink,
       signInWithPassword,
+      signUpWithPassword,
       updateDisplayName,
       signOut,
       refreshProfile,

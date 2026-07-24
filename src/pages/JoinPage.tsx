@@ -37,7 +37,23 @@ export function JoinPage() {
 
   if (!user) {
     return (
-      <Navigate to="/login" replace state={{ from: `/join/${token}` }} />
+      <div className="panel stack">
+        <h1>Join league</h1>
+        <p className="muted">
+          You need an account to accept this invite. Create one with email +
+          password, then you’ll return here automatically.
+        </p>
+        <Link
+          className="cta enabled"
+          to="/login"
+          state={{ from: `/join/${token}` }}
+        >
+          Sign in or create account
+        </Link>
+        <p className="muted">
+          <Link to="/">← Home</Link>
+        </p>
+      </div>
     )
   }
 
