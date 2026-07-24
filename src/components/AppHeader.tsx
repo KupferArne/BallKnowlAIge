@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { listMyLeagues } from '../lib/leagues'
@@ -8,51 +8,14 @@ import {
   toggleLightDark,
 } from '../lib/theme'
 import type { LeagueRow } from '../lib/types'
-
-function ThemeIcon({ mode }: { mode: 'light' | 'dark' }) {
-  if (mode === 'dark') {
-    return (
-      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-        <path
-          fill="currentColor"
-          d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"
-        />
-      </svg>
-    )
-  }
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M12 4.5a1 1 0 0 1 1 1V7a1 1 0 1 1-2 0V5.5a1 1 0 0 1 1-1Zm0 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.5-4.5a1 1 0 0 1-1 1H17a1 1 0 1 1 0-2h1.5a1 1 0 0 1 1 1ZM7 12a1 1 0 0 1-1 1H4.5a1 1 0 1 1 0-2H6a1 1 0 0 1 1 1Zm9.95 5.45a1 1 0 0 1-1.4 1.4l-1.1-1.1a1 1 0 1 1 1.4-1.4l1.1 1.1Zm-9.9 0 1.1-1.1a1 1 0 0 1 1.4 1.4l-1.1 1.1a1 1 0 1 1-1.4-1.4Zm9.9-10.9-1.1 1.1a1 1 0 1 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 1.4ZM8.55 6.55a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 1.4l-1.1 1.1ZM12 17a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V18a1 1 0 0 1 1-1Z"
-      />
-    </svg>
-  )
-}
-
-function MenuIcon({ open }: { open: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
-      {open ? (
-        <path
-          fill="currentColor"
-          d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z"
-        />
-      ) : (
-        <path
-          fill="currentColor"
-          d="M4 7h16v2H4V7Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"
-        />
-      )}
-    </svg>
-  )
-}
+import { IconClose, IconMenu, IconMoon, IconSun } from './icons'
 
 export function AppHeader() {
   const { ready, user, signOut } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const menuId = useId()
+  const menuRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [resolved, setResolved] = useState<'light' | 'dark'>(() =>
     resolveTheme(getThemePreference()),
@@ -87,8 +50,17 @@ export function AppHeader() {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setMenuOpen(false)
     }
+    function onPointer(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('mousedown', onPointer)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('mousedown', onPointer)
+    }
   }, [menuOpen])
 
   useEffect(() => {
@@ -96,8 +68,7 @@ export function AppHeader() {
   }, [location.pathname])
 
   function onToggleTheme() {
-    const next = toggleLightDark()
-    setResolved(next)
+    setResolved(toggleLightDark())
   }
 
   async function onSignOut() {
@@ -107,94 +78,106 @@ export function AppHeader() {
   }
 
   const showMenu = ready && Boolean(user)
+  const activeLeagueId = location.pathname.startsWith('/league/')
+    ? location.pathname.split('/')[2]
+    : null
 
   return (
-    <>
-      <header className="app-header">
-        <div className="app-header-left">
-          {showMenu ? (
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={menuOpen}
-              aria-controls={menuId}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              <MenuIcon open={menuOpen} />
-            </button>
-          ) : (
-            <span className="icon-btn-spacer" aria-hidden />
-          )}
-          <Link className="app-header-brand" to="/">
-            BallKnowlAIge
-          </Link>
-        </div>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onToggleTheme}
-          aria-label={
-            resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-          }
-          title={resolved === 'dark' ? 'Light mode' : 'Dark mode'}
-        >
-          <ThemeIcon mode={resolved} />
-        </button>
-      </header>
+    <header className="topbar">
+      <div className="topbar-inner">
+        <Link className="topbar-brand" to="/">
+          BallKnowlAIge
+        </Link>
 
-      {menuOpen && showMenu && (
-        <div
-          className="app-menu-backdrop"
-          role="presentation"
-          onClick={() => setMenuOpen(false)}
-        >
-          <nav
-            id={menuId}
-            className="app-menu panel"
-            aria-label="App menu"
-            onClick={(e) => e.stopPropagation()}
+        <div className="topbar-actions" ref={menuRef}>
+          <button
+            type="button"
+            className="ghost-btn"
+            onClick={onToggleTheme}
+            aria-label={
+              resolved === 'dark'
+                ? 'Switch to light mode'
+                : 'Switch to dark mode'
+            }
+            title={resolved === 'dark' ? 'Light mode' : 'Dark mode'}
           >
-            <p className="muted app-menu-email">{user?.email}</p>
+            {resolved === 'dark' ? <IconSun /> : <IconMoon />}
+          </button>
 
-            <p className="app-menu-heading">Leagues</p>
-            {leagues.length === 0 ? (
-              <p className="muted">No leagues yet.</p>
-            ) : (
-              <ul className="app-menu-list">
-                {leagues.map((league) => (
-                  <li key={league.id}>
-                    <Link
-                      to={`/league/${league.id}`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      {league.name}
-                      <span className="pill">{league.my_role}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div className="app-menu-actions">
-              <Link
-                className="cta enabled"
-                to="/"
-                onClick={() => setMenuOpen(false)}
-              >
-                All leagues
-              </Link>
+          {showMenu ? (
+            <>
               <button
                 type="button"
-                className="danger"
-                onClick={() => void onSignOut()}
+                className="ghost-btn"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={menuOpen}
+                aria-controls={menuId}
+                onClick={() => setMenuOpen((v) => !v)}
               >
-                Sign out
+                {menuOpen ? <IconClose /> : <IconMenu />}
               </button>
-            </div>
-          </nav>
+
+              {menuOpen && (
+                <div id={menuId} className="account-menu" role="menu">
+                  <div className="account-menu-head">
+                    <p className="account-menu-label">Signed in</p>
+                    <p className="account-menu-email">{user?.email}</p>
+                  </div>
+
+                  <p className="account-menu-label">Your leagues</p>
+                  {leagues.length === 0 ? (
+                    <p className="muted account-menu-empty">No leagues yet.</p>
+                  ) : (
+                    <ul className="account-menu-list">
+                      {leagues.map((league) => (
+                        <li key={league.id}>
+                          <Link
+                            to={`/league/${league.id}`}
+                            role="menuitem"
+                            className={
+                              league.id === activeLeagueId
+                                ? 'is-active'
+                                : undefined
+                            }
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            <span>{league.name}</span>
+                            <span className="pill">{league.my_role}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="account-menu-foot">
+                    <Link
+                      to="/"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Manage leagues
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="account-menu-danger"
+                      onClick={() => void onSignOut()}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            ready && (
+              <Link className="ghost-btn ghost-btn-text" to="/login">
+                Sign in
+              </Link>
+            )
+          )}
         </div>
-      )}
-    </>
+      </div>
+    </header>
   )
 }

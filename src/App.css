@@ -99,9 +99,8 @@ body {
   margin: 0;
   min-height: 100dvh;
   background:
-    radial-gradient(1200px 600px at 10% -10%, var(--glow-a), transparent 55%),
-    radial-gradient(900px 500px at 90% 0%, var(--glow-b), transparent 50%),
-    var(--bg0);
+    radial-gradient(900px 420px at 0% -5%, var(--glow-a), transparent 60%),
+    var(--bg);
 }
 
 #root {
@@ -115,141 +114,208 @@ a {
 }
 
 a.cta,
-a.linkish {
+a.linkish,
+a.topbar-brand,
+a.ghost-btn,
+.account-menu a {
   text-decoration: none;
 }
 
-.app {
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.app-main {
   width: min(100%, 56rem);
   margin: 0 auto;
   padding: 1.25rem 1.25rem 3rem;
   padding-left: max(1.25rem, env(safe-area-inset-left));
   padding-right: max(1.25rem, env(safe-area-inset-right));
   padding-bottom: max(3rem, calc(1.5rem + env(safe-area-inset-bottom)));
-  overflow-x: clip;
-  max-width: 100vw;
+  flex: 1;
 }
 
-.app-header {
+/* ── Top bar ───────────────────────────────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.topbar-inner {
+  width: min(100%, 56rem);
+  margin: 0 auto;
+  min-height: 3.25rem;
+  padding: 0.4rem 1.25rem;
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  margin: 0 -0.15rem 1rem;
-  padding: 0.35rem 0.15rem;
-  padding-top: max(0.35rem, env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(10px);
+  gap: 1rem;
 }
 
-.app-header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.app-header-brand {
+.topbar-brand {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--accent);
-  text-decoration: none;
   letter-spacing: -0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
-.icon-btn {
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ghost-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
+  min-width: 2.5rem;
   height: 2.5rem;
-  border: 1px solid var(--border);
+  padding: 0 0.55rem;
+  border: 0;
   border-radius: 0.4rem;
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
-  flex-shrink: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
   touch-action: manipulation;
 }
 
-.icon-btn:hover {
-  border-color: var(--accent);
+.ghost-btn:hover {
+  background: var(--wash-strong);
   color: var(--accent);
 }
 
-.icon-btn-spacer {
-  width: 2.5rem;
-  height: 2.5rem;
-  flex-shrink: 0;
+.ghost-btn-text {
+  color: var(--link);
+  min-width: auto;
 }
 
-.app-menu-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: color-mix(in srgb, #252422 45%, transparent);
-  display: flex;
-  justify-content: flex-start;
-  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
-}
-
-.app-menu {
-  width: min(100%, 20rem);
-  max-height: calc(100dvh - 1.5rem);
+.account-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: min(calc(100vw - 1.5rem), 18.5rem);
+  max-height: min(70dvh, 28rem);
   overflow: auto;
-  align-self: flex-start;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  box-shadow: 0 12px 40px color-mix(in srgb, #252422 18%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  z-index: 50;
 }
 
-.app-menu-email {
+.account-menu-head {
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-menu-label {
   margin: 0;
-  word-break: break-all;
-}
-
-.app-menu-heading {
-  margin: 0.35rem 0 0;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.app-menu-list {
+.account-menu-email {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  word-break: break-all;
+  color: var(--text);
+}
+
+.account-menu-empty {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.account-menu-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.15rem;
 }
 
-.app-menu-list a {
+.account-menu-list a {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.55rem 0.35rem;
-  border-bottom: 1px solid var(--border);
-  text-decoration: none;
+  padding: 0.55rem 0.45rem;
+  border-radius: 0.35rem;
   color: var(--text);
   font-weight: 700;
+  font-size: 0.95rem;
 }
 
-.app-menu-list a:hover {
+.account-menu-list a:hover,
+.account-menu-list a.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
 }
 
-.app-menu-actions {
+.account-menu-foot {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  margin-top: 0.35rem;
+  gap: 0.15rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border);
+}
+
+.account-menu-foot a,
+.account-menu-foot button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.45rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-menu-foot a:hover {
+  background: var(--wash);
+  color: var(--accent);
+}
+
+.account-menu-danger {
+  color: var(--danger-text) !important;
+}
+
+.account-menu-danger:hover {
+  background: color-mix(in srgb, var(--red) 12%, transparent) !important;
 }
 
 .league-title-brand {
@@ -557,11 +623,11 @@ a.linkish {
 
 .tabs-sticky {
   position: sticky;
-  top: calc(3.1rem + env(safe-area-inset-top, 0px));
+  top: calc(3.25rem + env(safe-area-inset-top, 0px));
   z-index: 20;
   padding: 0.45rem 0;
   margin: 0 -0.15rem;
-  background: color-mix(in srgb, var(--bg0) 92%, transparent);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -1053,8 +1119,13 @@ a.linkish {
 }
 
 @media (max-width: 640px) {
-  .app {
+  .app-main {
     padding-top: 1rem;
+    padding-left: max(0.65rem, env(safe-area-inset-left));
+    padding-right: max(0.65rem, env(safe-area-inset-right));
+  }
+
+  .topbar-inner {
     padding-left: max(0.65rem, env(safe-area-inset-left));
     padding-right: max(0.65rem, env(safe-area-inset-right));
   }
@@ -1142,11 +1213,11 @@ a.linkish {
   }
 
   .tabs-sticky {
-    top: calc(3.1rem + env(safe-area-inset-top, 0px));
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
   }
 
   .matchday-sticky {
-    top: calc(6.2rem + env(safe-area-inset-top, 0px));
+    top: calc(6.4rem + env(safe-area-inset-top, 0px));
   }
 
   .hide-sm {
@@ -1194,23 +1265,13 @@ a.linkish {
 }
 
 @media (min-width: 900px) {
-  .app {
+  .app-main,
+  .topbar-inner {
     width: min(100%, 64rem);
   }
 }
 
-/* ── Match table (replaces card stack) ─────────────────────────── */
-
-.theme-toggle {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.theme-toggle .tab {
-  flex: 1 1 auto;
-  min-width: 4.5rem;
-}
+/* ── Match / standings tables ──────────────────────────────────── */
 
 .match-edit-teams {
   margin-top: 0.35rem;

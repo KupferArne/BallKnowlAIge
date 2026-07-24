@@ -13,15 +13,17 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter basename={basename}>
-        <div className="app">
+        <div className="app-shell">
           <AppHeader />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/join/:token" element={<JoinPage />} />
-            <Route path="/league/:leagueId" element={<LeaguePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/join/:token" element={<JoinPage />} />
+              <Route path="/league/:leagueId" element={<LeaguePage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
         </div>
       </BrowserRouter>
     </AuthProvider>
